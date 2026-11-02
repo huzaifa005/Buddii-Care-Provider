@@ -1,26 +1,279 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+  --color-heading: var(--heading);
+  --color-kpi-label: var(--kpi-label);
+  --color-placeholder: var(--placeholder);
+  --color-search: var(--search);
+  --color-avatar: var(--avatar);
+  --color-avatar-border: var(--avatar-border);
+  --color-avatar-foreground: var(--avatar-foreground);
+  --color-notification-dot: var(--notification-dot);
+  --color-chat-ink: var(--chat-ink);
+  --color-chat-muted: var(--chat-muted);
+  --color-chat-subtle: var(--chat-subtle);
+  --color-chat-soft: var(--chat-soft);
+  --color-chat-line: var(--chat-line);
+  --color-chat-sent: var(--chat-sent);
+  --color-chat-active: var(--chat-active);
+  --color-chat-context-line: var(--chat-context-line);
+  --color-chat-online: var(--chat-online);
+  --color-chat-tag: var(--chat-tag);
+  --color-chat-tag-foreground: var(--chat-tag-foreground);
+  --color-icon-tile: var(--icon-tile);
+  --color-icon-tile-foreground: var(--icon-tile-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-foreground: var(--success-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-foreground: var(--info-foreground);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-neutral-foreground: var(--neutral-foreground);
+  --color-sidebar-label: var(--sidebar-label);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --radius-card: 0.875rem;
+  --radius-panel: 0.875rem;
+  --shadow-card: var(--elevation-card);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * DESIGN TOKENS
+ * Source: Figma "Buddii-app" > Council Dashboard (shared Buddii design language).
+ * Single source of truth for colour, radius, elevation and type. Components consume these
+ * through Tailwind utilities (bg-primary, text-heading, rounded-card, shadow-card, ...)
+ * and never hard-code hex values. Typeface is Inter only.
+ */
+:root {
+  --radius: 0.625rem;
+
+  /* Surfaces */
+  --background: #f6f7fb;
+  --foreground: #1b1b1f;
+  --heading: #000f3f;
+  --card: #ffffff;
+  --card-foreground: #1b1b1f;
+  --popover: #ffffff;
+  --popover-foreground: #1b1b1f;
+
+  /* Brand */
+  --primary: #172554;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f3f7; /* soft pill buttons, list rows */
+  --secondary-foreground: #000f3f;
+  --muted: #f5f3f7;
+  --muted-foreground: #5b6678;
+  --kpi-label: #45464f; /* KPI card label (Council Figma) */
+  --placeholder: #6b7280;
+  --search: #f8fafc; /* header search field */
+  --avatar: #e2e8f0;
+  --avatar-border: #cbd5e1;
+  --avatar-foreground: #475569;
+  --notification-dot: #ef4444;
+
+  /* Chat (Council Figma "Chat" screens). Subtle text darkened from #9ca3af to pass WCAG AA. */
+  --chat-ink: #111827;
+  --chat-muted: #4b5563;
+  --chat-subtle: #687080;
+  --chat-soft: #f3f4f6;
+  --chat-line: #e5e7eb;
+  --chat-sent: #2563eb;
+  --chat-active: #eff6ff;
+  --chat-context-line: #dbeafe;
+  --chat-online: #22c55e;
+  --chat-tag: #dcfce7;
+  --chat-tag-foreground: #15803d; /* >= 4.5:1 on every light surface (WCAG AA) */
+  --accent: #eef2ff;
+  --accent-foreground: #172554;
+  --icon-tile: rgb(208 228 255 / 50%);
+  --icon-tile-foreground: #172554;
+
+  /* Status: solid / soft background / text on soft */
+  --success: #10b981;
+  --success-soft: #d1fae5;
+  --success-foreground: #005137;
+  --destructive: #ba1a1a;
+  --destructive-soft: #ffdad6;
+  --destructive-foreground: #93000a;
+  --warning: #f59e0b;
+  --warning-soft: #fef3c7;
+  --warning-foreground: #92400e;
+  --info: #3352ba;
+  --info-soft: #dce1ff;
+  --info-foreground: #172554;
+  --neutral-soft: #dddfeb;
+  --neutral-foreground: #181b24;
+
+  /* Lines and focus */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #3352ba;
+
+  /* Data visualisation */
+  --chart-1: #172554;
+  --chart-2: #10b981;
+  --chart-3: #3352ba;
+  --chart-4: #94a3b8;
+  --chart-5: #f59e0b;
+
+  /* Elevation and feature fills */
+  --elevation-card: 0 1px 1px rgb(0 0 0 / 5%);
+  --elevation-card-hover: 0 1px 1px rgb(0 0 0 / 5%), 0 4px 12px rgb(0 0 0 / 6%);
+  --gradient-highlight: linear-gradient(155deg, #172554 25%, #3352ba 178%);
+
+  /* Sidebar */
+  --sidebar: #050a1f;
+  --sidebar-gradient: radial-gradient(
+    140% 55% at 100% 0%,
+    #172554 0%,
+    #0d1534 39%,
+    #080d24 58%,
+    #030414 77%,
+    #000000 92%
+  );
+  --sidebar-foreground: #94a3b8;
+  --sidebar-label: #64748b;
+  --sidebar-muted: #808dc2;
+  --sidebar-primary: rgb(255 255 255 / 10%); /* active item */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgb(255 255 255 / 5%); /* hover */
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 8%);
+  --sidebar-ring: #3352ba;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  [data-sidebar="sidebar"] {
+    background-image: var(--sidebar-gradient);
+  }
+
+  /* Thin, low-contrast scrollbar for the dark sidebar. */
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 14%) transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 14%);
+  }
+}
+
+/*
+ * CARD SURFACES (Council Dashboard Figma): plain white, no border, a 1px soft shadow.
+ * `surface-hover` only deepens the shadow on clickable cards. No gradients, gloss or motion.
+ */
+@utility surface {
+  background-color: var(--card);
+  box-shadow: var(--elevation-card);
+}
+
+@utility surface-hover {
+  transition: box-shadow 150ms ease;
+
+  &:hover {
+    box-shadow: var(--elevation-card-hover);
+  }
 }
