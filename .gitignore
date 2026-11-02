@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+.netlify
+
+# Kept out of the repository on purpose (internal docs, local agent settings)
+/docs/
+/.claude/
