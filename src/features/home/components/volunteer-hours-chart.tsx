@@ -26,7 +26,7 @@ export function VolunteerHoursChart({ data }: { data: DashboardSummary["voluntee
       : 0
 
   return (
-    <Panel className="flex flex-col lg:col-span-8">
+    <Panel className="flex flex-col xl:col-span-8">
       <PanelHeader
         title="Volunteer hours"
         description={`Weekly hours, last ${weeks.length} weeks`}

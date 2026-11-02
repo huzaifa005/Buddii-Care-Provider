@@ -12,7 +12,7 @@ import { type Visit } from "../schemas"
 
 export function TodayVisits({ visits }: { visits: Visit[] }) {
   return (
-    <Panel className="flex flex-col lg:col-span-4">
+    <Panel className="flex flex-col xl:col-span-4">
       <PanelHeader
         title="Today's visits"
         description={`${visits.length} volunteer ${visits.length === 1 ? "visit" : "visits"}`}

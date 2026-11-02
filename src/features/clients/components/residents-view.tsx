@@ -122,7 +122,7 @@ export function ResidentsView() {
 
       <Panel className="overflow-hidden p-0">
         <div className="flex flex-col gap-3 border-b px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <Select
               value={area}
               onValueChange={(v) => {
@@ -130,7 +130,10 @@ export function ResidentsView() {
                 resetPage()
               }}
             >
-              <SelectTrigger className="h-10 min-w-40" aria-label="Filter by area">
+              <SelectTrigger
+                className="h-10 w-full min-w-0 sm:w-auto sm:min-w-40"
+                aria-label="Filter by area"
+              >
                 <span className="text-muted-foreground">Area:</span>
                 <SelectValue />
               </SelectTrigger>
@@ -150,7 +153,10 @@ export function ResidentsView() {
                 resetPage()
               }}
             >
-              <SelectTrigger className="h-10 min-w-40" aria-label="Filter by status">
+              <SelectTrigger
+                className="h-10 w-full min-w-0 sm:w-auto sm:min-w-40"
+                aria-label="Filter by status"
+              >
                 <span className="text-muted-foreground">Status:</span>
                 <SelectValue />
               </SelectTrigger>
@@ -213,7 +219,7 @@ export function ResidentsView() {
 function ResidentStats({ residents, total }: { residents?: Client[]; total?: number }) {
   if (!residents) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
           <StatCardSkeleton key={i} />
         ))}
@@ -225,7 +231,7 @@ function ResidentStats({ residents, total }: { residents?: Client[]; total?: num
   const awaiting = residents.filter((r) => r.volunteerMatchStatus === "AWAITING_MATCH").length
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       <StatCard
         featured
         href="/residents"

@@ -78,9 +78,9 @@ export function SafeguardingView() {
         }
       />
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="space-y-6 lg:col-span-8">
-          <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-12">
+        <div className="space-y-6 xl:col-span-8">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <StatCard
               label="Open concerns"
               value={query.data ? open.length : "–"}
@@ -116,7 +116,7 @@ export function SafeguardingView() {
           </QueryBoundary>
         </div>
 
-        <Panel className="h-fit lg:col-span-4">
+        <Panel className="h-fit xl:col-span-4">
           <PanelHeader
             icon={Siren}
             iconTone="danger"

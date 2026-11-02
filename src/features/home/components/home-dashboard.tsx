@@ -54,11 +54,11 @@ export function HomeDashboard() {
         <>
           <ObservationAlert actions={data.actions} />
           <HomeStats metrics={data.metrics} />
-          <div className="grid gap-6 lg:grid-cols-12">
+          <div className="grid gap-6 xl:grid-cols-12">
             <AttentionList actions={data.actions} />
             <TodayVisits visits={data.todayVisits} />
           </div>
-          <div className="grid gap-6 lg:grid-cols-12">
+          <div className="grid gap-6 xl:grid-cols-12">
             <VolunteerHoursChart data={data.volunteerHours} />
             <PendingAssignments assignments={data.pendingAssignments} />
           </div>
@@ -72,13 +72,13 @@ function HomeSkeleton() {
   return (
     <>
       <HomeStatsSkeleton />
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Skeleton className="h-[26rem] rounded-panel lg:col-span-8" />
-        <Skeleton className="h-[26rem] rounded-panel lg:col-span-4" />
+      <div className="grid gap-6 xl:grid-cols-12">
+        <Skeleton className="h-[26rem] rounded-panel xl:col-span-8" />
+        <Skeleton className="h-[26rem] rounded-panel xl:col-span-4" />
       </div>
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Skeleton className="h-80 rounded-panel lg:col-span-8" />
-        <Skeleton className="h-80 rounded-panel lg:col-span-4" />
+      <div className="grid gap-6 xl:grid-cols-12">
+        <Skeleton className="h-80 rounded-panel xl:col-span-8" />
+        <Skeleton className="h-80 rounded-panel xl:col-span-4" />
       </div>
     </>
   )

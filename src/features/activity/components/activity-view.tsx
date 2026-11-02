@@ -43,7 +43,7 @@ export function ActivityView() {
         description="Every volunteer visit for your residents, with observations to review"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {stats ? (
           <>
             <StatCard

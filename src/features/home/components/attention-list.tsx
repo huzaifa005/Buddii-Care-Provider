@@ -10,7 +10,7 @@ import { type ActionItem } from "../schemas"
 
 export function AttentionList({ actions }: { actions: ActionItem[] }) {
   return (
-    <Panel className="flex flex-col p-0 lg:col-span-8">
+    <Panel className="flex flex-col p-0 xl:col-span-8">
       <PanelHeader
         className="mb-0 border-b px-6 py-5"
         title="Needs your attention"

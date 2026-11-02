@@ -16,7 +16,7 @@ function receivedLabel(receivedAt: string) {
 
 export function PendingAssignments({ assignments }: { assignments: PendingAssignment[] }) {
   return (
-    <Panel className="flex flex-col lg:col-span-4">
+    <Panel className="flex flex-col xl:col-span-4">
       <PanelHeader
         title="Council assignments"
         description={

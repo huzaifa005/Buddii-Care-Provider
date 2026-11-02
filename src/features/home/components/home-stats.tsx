@@ -6,7 +6,7 @@ import { KpiIcons } from "@/lib/icons"
 
 import { type DashboardSummary } from "../schemas"
 
-const GRID = "grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+const GRID = "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
 
 export function HomeStats({ metrics }: { metrics: DashboardSummary["metrics"] }) {
   const { activeClients, volunteerHoursThisMonth, visitsCompletedThisMonth, averageWellbeing } =

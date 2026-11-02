@@ -66,7 +66,7 @@ export function OutcomesView() {
         query={query}
         fallback={
           <div className="space-y-6">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
               {Array.from({ length: 5 }, (_, i) => (
                 <Skeleton key={i} className="h-32 rounded-card" />
               ))}
@@ -93,7 +93,7 @@ function OutcomesContent({ data }: { data: OutcomesSummary }) {
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard
           label="Wellbeing"
           value={averageWellbeing.current.toFixed(1)}
@@ -132,8 +132,8 @@ function OutcomesContent({ data }: { data: OutcomesSummary }) {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        <Panel className="lg:col-span-8">
+      <div className="grid gap-6 xl:grid-cols-12">
+        <Panel className="xl:col-span-8">
           <PanelHeader
             title="Wellbeing, loneliness and confidence"
             description="Programme average, last 6 months"
@@ -187,7 +187,7 @@ function OutcomesContent({ data }: { data: OutcomesSummary }) {
             </LineChart>
           </ChartContainer>
         </Panel>
-        <Panel className="lg:col-span-4">
+        <Panel className="xl:col-span-4">
           <PanelHeader title="Hours by activity" description="This month" />
           <ChartContainer config={hoursConfig} className="aspect-auto h-72 w-full">
             <BarChart data={data.hoursByType} layout="vertical" margin={{ left: 0, right: 16 }}>
