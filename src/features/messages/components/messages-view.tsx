@@ -10,6 +10,7 @@ import {
   MessageSquare,
   Search,
   SendHorizontal,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs"
@@ -61,6 +62,8 @@ export function MessagesView() {
     parseAsStringLiteral(FILTERS).withDefault("all"),
   )
   const [search, setSearch] = useState("")
+  // Details open on demand (info button), so the conversation keeps its width.
+  const [showDetails, setShowDetails] = useState(false)
 
   return (
     <QueryBoundary
@@ -80,7 +83,13 @@ export function MessagesView() {
         return (
           // Phones and tablets show the list or the open conversation (master/detail);
           // from md the list sits beside the chat; from xl the details panel joins them.
-          <div className="grid h-[calc(100svh-8.5rem)] min-h-[30rem] grid-cols-1 overflow-hidden rounded-panel surface md:h-[calc(100svh-10rem)] md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)_300px]">
+          <div
+            data-full-bleed
+            className={cn(
+              "grid h-[calc(100svh-72px)] min-h-[30rem] grid-cols-1 overflow-hidden bg-card md:grid-cols-[320px_minmax(0,1fr)] lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[440px_minmax(0,1fr)]",
+              showDetails && "2xl:grid-cols-[440px_minmax(0,1fr)_320px]",
+            )}
+          >
             <aside
               className={cn(
                 "min-h-0 min-w-0 flex-col border-r",
@@ -145,8 +154,12 @@ export function MessagesView() {
                   thread={active}
                   className={selected ? "flex" : "hidden md:flex"}
                   onBack={() => setSelected(null)}
+                  detailsOpen={showDetails}
+                  onToggleDetails={() => setShowDetails((open) => !open)}
                 />
-                <ThreadDetails thread={active} />
+                {showDetails && (
+                  <ThreadDetails thread={active} onClose={() => setShowDetails(false)} />
+                )}
               </>
             ) : (
               <EmptyState icon={MessageSquare} title="No conversations yet" />
@@ -240,11 +253,15 @@ function Conversation({
   thread,
   className,
   onBack,
+  detailsOpen,
+  onToggleDetails,
 }: {
   thread: Thread
   className?: string
   /** Back to the conversation list on small screens. */
   onBack: () => void
+  detailsOpen: boolean
+  onToggleDetails: () => void
 }) {
   const [draft, setDraft] = useState("")
   const send = useSendMessage(thread.id)
@@ -279,8 +296,11 @@ function Conversation({
   }
 
   return (
-    <section className={cn("min-h-0 min-w-0 flex-col", className)} aria-label={thread.subject}>
-      <header className="flex items-center gap-3 border-b px-4 py-3.5 sm:gap-3.5 sm:px-6 sm:py-4">
+    <section
+      className={cn("min-h-0 min-w-0 flex-col bg-chat-canvas", className)}
+      aria-label={thread.subject}
+    >
+      <header className="flex items-center gap-3 border-b bg-card px-4 py-3.5 sm:gap-3.5 sm:px-6 sm:py-4">
         <button
           type="button"
           onClick={onBack}
@@ -301,6 +321,18 @@ function Conversation({
           <Lock className="size-3" aria-hidden />
           Audited
         </span>
+        <button
+          type="button"
+          onClick={onToggleDetails}
+          aria-pressed={detailsOpen}
+          aria-label="Conversation details"
+          className={cn(
+            "flex size-10 shrink-0 items-center justify-center rounded-full text-chat-muted hover:bg-chat-soft",
+            detailsOpen && "bg-chat-soft text-chat-ink",
+          )}
+        >
+          <Info className="size-5" aria-hidden />
+        </button>
       </header>
 
       {thread.clientRef && (
@@ -349,14 +381,14 @@ function Conversation({
           Your role can read these conversations but not reply.
         </p>
       ) : (
-        <div className="border-t">
+        <div className="border-t bg-card">
           <div className="flex gap-2 overflow-x-auto px-4 pt-4 sm:px-6">
             {QUICK_REPLIES.map((reply) => (
               <button
                 key={reply}
                 type="button"
                 onClick={() => setDraft(reply)}
-                className="shrink-0 rounded-full border border-chat-line px-3.5 py-1.5 text-sm text-chat-ink hover:bg-chat-soft"
+                className="shrink-0 rounded-full border border-chat-line bg-card px-3.5 py-1.5 text-sm text-chat-ink hover:bg-chat-soft"
               >
                 {reply === QUICK_REPLIES[0] && (
                   <Check className="mr-1 inline size-3.5" aria-hidden />
@@ -450,15 +482,26 @@ function Sent({ message: m, initials: me }: { message: Message; initials: string
   )
 }
 
-function ThreadDetails({ thread }: { thread: Thread }) {
+function ThreadDetails({ thread, onClose }: { thread: Thread; onClose: () => void }) {
   const fromCoordinator = thread.messages.filter((m) => m.from === "COORDINATOR")
   const coordinatorRef = fromCoordinator[0]?.author
   const lastReply = fromCoordinator.at(-1)
   return (
     <aside
-      className="hidden min-h-0 overflow-y-auto border-l xl:block"
+      // Side column on very wide screens; an overlay panel otherwise.
+      className="fixed inset-y-0 right-0 z-40 w-80 overflow-y-auto border-l bg-card shadow-xl 2xl:static 2xl:z-auto 2xl:min-h-0 2xl:w-auto 2xl:shadow-none"
       aria-label="Conversation details"
     >
+      <div className="flex justify-end px-3 pt-3">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close details"
+          className="flex size-9 items-center justify-center rounded-full text-chat-muted hover:bg-chat-soft"
+        >
+          <X className="size-5" aria-hidden />
+        </button>
+      </div>
       <div className="flex flex-col items-center gap-2 border-b px-5 py-7 text-center">
         <CoordinatorAvatar size="lg" />
         <p className="pt-2 text-lg font-semibold text-chat-ink">{thread.participant}</p>

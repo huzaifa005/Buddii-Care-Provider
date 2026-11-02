@@ -22,6 +22,7 @@
   --color-chat-muted: var(--chat-muted);
   --color-chat-subtle: var(--chat-subtle);
   --color-chat-soft: var(--chat-soft);
+  --color-chat-canvas: var(--chat-canvas);
   --color-chat-line: var(--chat-line);
   --color-chat-sent: var(--chat-sent);
   --color-chat-active: var(--chat-active);
@@ -126,6 +127,7 @@
   --chat-muted: #4b5563;
   --chat-subtle: #687080;
   --chat-soft: #f3f4f6;
+  --chat-canvas: #f8fafc; /* conversation background */
   --chat-line: #e5e7eb;
   --chat-sent: #2563eb;
   --chat-active: #eff6ff;

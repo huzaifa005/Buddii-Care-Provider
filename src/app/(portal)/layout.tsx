@@ -23,7 +23,8 @@ export default function PortalLayout({ children }: LayoutProps<"/">) {
         <div
           id="content"
           tabIndex={-1}
-          className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-6 outline-none md:px-8 md:py-10"
+          // Pages that render `data-full-bleed` (e.g. Messages) take the whole area under the header.
+          className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-6 outline-none has-[[data-full-bleed]]:max-w-none has-[[data-full-bleed]]:p-0 md:px-8 md:py-10 md:has-[[data-full-bleed]]:p-0"
         >
           {children}
         </div>
