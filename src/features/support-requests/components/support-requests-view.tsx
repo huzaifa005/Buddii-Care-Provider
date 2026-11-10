@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ClientLink } from "@/features/clients/components/client-link"
+import { ResidentLink } from "@/features/residents/components/resident-link"
 import { useCan } from "@/features/session/api"
 import { formatDayMonth } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -29,6 +29,7 @@ import { useCancelSupportRequest, useSupportRequests } from "../api"
 import { FREQUENCY_LABEL, REQUEST_STATUS } from "../presentation"
 import { REQUEST_STATUSES, type RequestStatus } from "../schemas"
 import { NewRequestSheet } from "./new-request-sheet"
+import { RequestSheet } from "./request-sheet"
 
 const PIPELINE: {
   status: RequestStatus
@@ -44,7 +45,8 @@ const PIPELINE: {
 export function SupportRequestsView() {
   const [status, setStatus] = useQueryState("status", parseAsStringLiteral(REQUEST_STATUSES))
   const [isNew, setIsNew] = useQueryState("new", parseAsBoolean.withDefault(false))
-  const [clientParam, setClientParam] = useQueryState("for", parseAsString)
+  const [residentParam, setResidentParam] = useQueryState("for", parseAsString)
+  const [openId, setOpenId] = useQueryState("id", parseAsString)
   const query = useSupportRequests(status ?? undefined)
   const cancel = useCancelSupportRequest()
   const canCreate = useCan("requests.create")
@@ -145,17 +147,30 @@ export function SupportRequestsView() {
                     const st = REQUEST_STATUS[r.status]
                     const cancellable = r.status === "COORDINATOR_REVIEW" || r.status === "MATCHING"
                     return (
-                      <TableRow key={r.id}>
+                      <TableRow
+                        key={r.id}
+                        className="cursor-pointer"
+                        onClick={(e) => {
+                          if ((e.target as HTMLElement).closest("a,button")) return
+                          void setOpenId(r.id)
+                        }}
+                      >
                         <TableCell className={tableCell}>
-                          <p className="font-medium text-heading">{r.type}</p>
+                          <button
+                            type="button"
+                            className="text-left font-medium text-heading hover:underline"
+                            onClick={() => void setOpenId(r.id)}
+                          >
+                            {r.type}
+                          </button>
                           <p className="text-xs text-muted-foreground tabular-nums">
                             {r.id} · {FREQUENCY_LABEL[r.frequency]}
                             {r.riskLevel === "ELEVATED" && " · Elevated risk"}
                           </p>
                         </TableCell>
                         <TableCell className={tableCell}>
-                          <ClientLink
-                            clientId={r.clientId}
+                          <ResidentLink
+                            residentId={r.residentId}
                             className="font-medium text-heading tabular-nums hover:underline"
                           />
                         </TableCell>
@@ -179,8 +194,7 @@ export function SupportRequestsView() {
                               variant="ghost"
                               size="sm"
                               className="text-muted-foreground"
-                              disabled={cancel.isPending}
-                              onClick={() => onCancel(r.id)}
+                              onClick={() => void setOpenId(r.id)}
                             >
                               Cancel
                             </Button>
@@ -196,12 +210,20 @@ export function SupportRequestsView() {
         </QueryBoundary>
       </Panel>
 
+      <RequestSheet
+        request={query.data?.results.find((r) => r.id === openId) ?? null}
+        onClose={() => void setOpenId(null)}
+        canCancel={canCancel}
+        cancelling={cancel.isPending}
+        onCancel={onCancel}
+      />
+
       <NewRequestSheet
         open={isNew && canCreate}
-        defaultClientId={clientParam ?? undefined}
+        defaultClientId={residentParam ?? undefined}
         onOpenChange={(open) => {
           void setIsNew(open ? true : null)
-          if (!open) void setClientParam(null)
+          if (!open) void setResidentParam(null)
         }}
       />
     </div>

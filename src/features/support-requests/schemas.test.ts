@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { newSupportRequestSchema } from "./schemas"
 
 const valid = {
-  clientId: "BUD-0009",
+  residentId: "BUD-0009",
   type: "Companionship visit",
   goal: "Reduce isolation through weekly visits",
   frequency: "WEEKLY",

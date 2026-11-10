@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { buddiiIdSchema } from "@/features/clients/schemas"
+import { buddiiIdSchema } from "@/features/residents/schemas"
 
 /** Volunteer-safe support only. Personal care, medication and clinical tasks are out of scope. */
 export const SUPPORT_TYPES = [
@@ -25,7 +25,7 @@ export const REQUEST_STATUSES = [
 
 export const supportRequestSchema = z.object({
   id: z.string(),
-  clientId: buddiiIdSchema,
+  residentId: buddiiIdSchema,
   type: z.enum(SUPPORT_TYPES),
   goal: z.string(),
   frequency: z.enum(["WEEKLY", "FORTNIGHTLY", "ONE_OFF"]),
@@ -45,7 +45,7 @@ export const supportRequestListSchema = z.object({
 })
 
 export const newSupportRequestSchema = z.object({
-  clientId: z.string().min(1, "Choose a resident"),
+  residentId: z.string().min(1, "Choose a resident"),
   // The form starts empty (""); the pipe rejects that with a friendly message on submit.
   type: z
     .union([z.literal(""), z.enum(SUPPORT_TYPES)])

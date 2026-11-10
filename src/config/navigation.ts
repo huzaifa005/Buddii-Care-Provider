@@ -13,14 +13,14 @@ export interface NavItem {
 }
 
 /**
- * The 10 free Provider Portal sections. Order and wording are fixed by the
- * client's product split (Vaseem feedback, 19 Aug 2026); change only with sign-off.
+ * The 10 free Provider Portal sections, with the same terms as the Council Dashboard
+ * (CLAUDE.md rule 4). New assignments live in the Action Centre and at /assignments.
  */
 export const PORTAL_NAV = [
   {
     id: "home",
     group: "Main",
-    title: "Home",
+    title: "Overview",
     href: "/",
     icon: NavIcons.home,
     description: "Today's volunteer activity and new council assignments",
@@ -34,12 +34,12 @@ export const PORTAL_NAV = [
     description: "Residents assigned through the Buddii programme",
   },
   {
-    id: "assignments",
+    id: "action-centre",
     group: "Main",
-    title: "New Assignments",
-    href: "/assignments",
+    title: "Action Centre",
+    href: "/action-centre",
     icon: NavIcons.assignments,
-    description: "Confirm or decline council programme assignments",
+    description: "Council requests, new assignments, review dates and observations in one list",
   },
   {
     id: "support-requests",
@@ -60,10 +60,10 @@ export const PORTAL_NAV = [
   {
     id: "outcomes",
     group: "Programme",
-    title: "Outcomes & Impact",
+    title: "Outcomes",
     href: "/outcomes",
     icon: NavIcons.outcomes,
-    description: "Wellbeing, loneliness and volunteer hours",
+    description: "Wellbeing (WEMWBS) and loneliness (UCLA) from Council-verified assessments",
   },
   {
     id: "messages",
@@ -92,7 +92,7 @@ export const PORTAL_NAV = [
   {
     id: "settings",
     group: "Administration",
-    title: "Users & Settings",
+    title: "Settings",
     href: "/settings",
     icon: NavIcons.settings,
     description: "Provider users, roles and preferences",

@@ -31,6 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
@@ -46,7 +53,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCan } from "@/features/session/api"
 import { FREE_PORTAL_ROLES, PROVIDER_ROLE_LABELS } from "@/features/session/schemas"
 import { ApiError } from "@/lib/api/client"
-import { formatDayMonth, formatTime, initials } from "@/lib/format"
+import { formatDate, formatDayMonth, formatTime, initials } from "@/lib/format"
 
 import {
   useInviteUser,
@@ -60,6 +67,7 @@ import {
   inviteUserSchema,
   NOTIFICATION_KEYS,
   type NotificationSettings,
+  type ProviderUser,
 } from "../schemas"
 
 const TABS = ["users", "organisation", "notifications"] as const
@@ -82,7 +90,7 @@ export function SettingsView() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Users & Settings"
+        title="Settings"
         description="Manage who can use the portal and how you are notified"
       />
       <Tabs
@@ -121,6 +129,7 @@ export function SettingsView() {
 function UsersTab() {
   const query = useUsers()
   const [inviting, setInviting] = useState(false)
+  const [openUser, setOpenUser] = useState<ProviderUser | null>(null)
   const canManage = useCan("users.manage")
   return (
     <Panel className="p-0">
@@ -150,7 +159,7 @@ function UsersTab() {
             </TableHeader>
             <TableBody>
               {users.map((u) => (
-                <TableRow key={u.id}>
+                <TableRow key={u.id} className="cursor-pointer" onClick={() => setOpenUser(u)}>
                   <TableCell className={tableCell}>
                     <div className="flex items-center gap-3">
                       <Avatar className="size-8">
@@ -159,7 +168,9 @@ function UsersTab() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium text-heading">{u.displayName}</p>
+                        <button type="button" className="font-medium text-heading hover:underline">
+                          {u.displayName}
+                        </button>
                         <p className="text-xs text-muted-foreground">{u.email}</p>
                       </div>
                     </div>
@@ -194,6 +205,50 @@ function UsersTab() {
         )}
       </QueryBoundary>
       <InviteDialog open={inviting} onOpenChange={setInviting} />
+      <Sheet open={openUser !== null} onOpenChange={(open) => !open && setOpenUser(null)}>
+        <SheetContent className="gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[520px]">
+          {openUser && (
+            <>
+              <SheetHeader className="border-b px-6 py-5">
+                <SheetTitle className="text-xl font-bold text-heading">
+                  {openUser.displayName}
+                </SheetTitle>
+                <SheetDescription>{openUser.email}</SheetDescription>
+              </SheetHeader>
+              <dl className="divide-y px-6 py-2 text-[13px]">
+                {(
+                  [
+                    ["Role", PROVIDER_ROLE_LABELS[openUser.role]],
+                    [
+                      "Status",
+                      openUser.status === "ACTIVE"
+                        ? "Active"
+                        : openUser.status === "INVITED"
+                          ? "Invited, not signed in yet"
+                          : "Suspended",
+                    ],
+                    [
+                      "Last active",
+                      openUser.lastActiveAt
+                        ? `${formatDate(openUser.lastActiveAt)}, ${formatTime(openUser.lastActiveAt)}`
+                        : "Never",
+                    ],
+                  ] as const
+                ).map(([k, v]) => (
+                  <div key={k} className="grid grid-cols-[120px_1fr] gap-4 py-3">
+                    <dt className="text-muted-foreground">{k}</dt>
+                    <dd className="font-medium text-heading">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="px-6 py-4 text-xs text-muted-foreground">
+                Role changes and removing access are made by a Provider Administrator and recorded
+                in the audit log.
+              </p>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </Panel>
   )
 }

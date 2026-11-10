@@ -3,18 +3,18 @@ import { describe, expect, it } from "vitest"
 import { findActiveNavItem, PORTAL_NAV } from "./navigation"
 
 describe("portal navigation", () => {
-  it("keeps the 10 signed-off sections in order", () => {
+  it("uses the Council Dashboard terms, in order", () => {
     expect(PORTAL_NAV.map((item) => item.title)).toEqual([
-      "Home",
+      "Overview",
       "Residents",
-      "New Assignments",
+      "Action Centre",
       "Support Requests",
       "Volunteer Activity",
-      "Outcomes & Impact",
+      "Outcomes",
       "Messages",
       "Safeguarding",
       "Reports",
-      "Users & Settings",
+      "Settings",
     ])
   })
 

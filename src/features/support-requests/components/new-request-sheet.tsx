@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/sheet"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
-import { ClientSelect } from "@/features/clients/components/client-select"
+import { ResidentSelect } from "@/features/residents/components/resident-select"
 import { ApiError } from "@/lib/api/client"
 
 import { useCreateSupportRequest } from "../api"
@@ -52,7 +52,7 @@ export function NewRequestSheet({
   const form = useForm<NewSupportRequestInput, unknown, NewSupportRequest>({
     resolver: zodResolver(newSupportRequestSchema),
     values: {
-      clientId: defaultClientId ?? "",
+      residentId: defaultClientId ?? "",
       type: "",
       goal: "",
       frequency: "WEEKLY",
@@ -104,12 +104,12 @@ export function NewRequestSheet({
           <div className="grid gap-5 sm:grid-cols-2">
             <Controller
               control={form.control}
-              name="clientId"
+              name="residentId"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="nr-client">Resident</FieldLabel>
-                  <ClientSelect
-                    id="nr-client"
+                  <FieldLabel htmlFor="nr-resident">Resident</FieldLabel>
+                  <ResidentSelect
+                    id="nr-resident"
                     value={field.value}
                     onChange={field.onChange}
                     invalid={fieldState.invalid}

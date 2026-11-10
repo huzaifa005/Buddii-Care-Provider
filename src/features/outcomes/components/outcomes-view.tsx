@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ClientLink } from "@/features/clients/components/client-link"
+import { ResidentLink } from "@/features/residents/components/resident-link"
 import { KpiIcons } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
@@ -45,7 +45,7 @@ const trendConfig = {
 const hoursConfig = { hours: { label: "Hours", color: "var(--chart-3)" } } satisfies ChartConfig
 
 const GOAL_STATUS: Record<
-  OutcomesSummary["clients"][number]["goalStatus"],
+  OutcomesSummary["residents"][number]["goalStatus"],
   { label: string; tone: StatusTone }
 > = {
   PROGRESSING: { label: "Progressing", tone: "success" },
@@ -221,11 +221,11 @@ function OutcomesContent({ data }: { data: OutcomesSummary }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.clients.map((c) => (
-              <TableRow key={c.clientId}>
+            {data.residents.map((c) => (
+              <TableRow key={c.residentId}>
                 <TableCell className={tableCell}>
-                  <ClientLink
-                    clientId={c.clientId}
+                  <ResidentLink
+                    residentId={c.residentId}
                     tab="outcomes"
                     className="font-medium text-heading tabular-nums hover:underline"
                   />

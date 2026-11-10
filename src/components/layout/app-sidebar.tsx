@@ -13,6 +13,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
@@ -20,6 +21,8 @@ import {
 } from "@/components/ui/sidebar"
 import { findActiveNavItem, NAV_GROUPS, PORTAL_NAV } from "@/config/navigation"
 import { siteConfig } from "@/config/site"
+import { useOpenActionCount } from "@/features/action-centre/api"
+import { cn } from "@/lib/utils"
 
 // Council Dashboard Figma: 45px rows, 18px text, filled 22px icons; the active row is a
 // full-width green bar. Collapsed (icon rail): 44px centred tiles, the active one green.
@@ -116,10 +119,28 @@ function NavLinks({ activeId }: { activeId?: string }) {
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
+              {item.id === "action-centre" && <OpenActionsBadge active={item.id === activeId} />}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
   ))
+}
+
+/** Open Action Centre items, as on the Council sidebar. */
+function OpenActionsBadge({ active }: { active: boolean }) {
+  const count = useOpenActionCount()
+  if (count === 0) return null
+  return (
+    <SidebarMenuBadge
+      aria-label={`${count} open actions`}
+      className={cn(
+        "rounded-full px-2 text-[11px] font-semibold tabular-nums group-data-[collapsible=icon]:hidden",
+        active ? "bg-white/25 text-white" : "bg-sidebar-accent text-sidebar-foreground",
+      )}
+    >
+      {count}
+    </SidebarMenuBadge>
+  )
 }

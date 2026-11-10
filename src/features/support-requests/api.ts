@@ -13,22 +13,22 @@ import {
 
 export const supportRequestKeys = {
   all: ["support-requests"] as const,
-  list: (status?: RequestStatus, clientId?: string) =>
-    [...supportRequestKeys.all, "list", { status, clientId }] as const,
+  list: (status?: RequestStatus, residentId?: string) =>
+    [...supportRequestKeys.all, "list", { status, residentId }] as const,
 }
 
-export const supportRequestListQuery = (status?: RequestStatus, clientId?: string) =>
+export const supportRequestListQuery = (status?: RequestStatus, residentId?: string) =>
   queryOptions({
-    queryKey: supportRequestKeys.list(status, clientId),
+    queryKey: supportRequestKeys.list(status, residentId),
     queryFn: () =>
       apiClient.get("/support-requests", {
         schema: supportRequestListSchema,
-        query: { status, client: clientId },
+        query: { status, resident: residentId },
       }),
   })
 
-export function useSupportRequests(status?: RequestStatus, clientId?: string) {
-  return useQuery(supportRequestListQuery(status, clientId))
+export function useSupportRequests(status?: RequestStatus, residentId?: string) {
+  return useQuery(supportRequestListQuery(status, residentId))
 }
 
 function useInvalidateRequests() {
