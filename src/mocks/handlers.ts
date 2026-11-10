@@ -1,11 +1,19 @@
 import { delay } from "msw"
 import { http, HttpResponse } from "msw/http"
 
+import { type ActionReplyInput } from "@/features/action-centre/schemas"
 import { type ActivityFilter } from "@/features/activity/schemas"
 import { type Assignment } from "@/features/assignments/schemas"
-import { isLocked } from "@/features/clients/presentation"
-import { type ClientDetail } from "@/features/clients/schemas"
-import { type NewReferral, type Referral } from "@/features/referrals/schemas"
+import { evaluateRules, notKnownCount } from "@/features/referrals/assessment"
+import { type Referral, type ReferralSubmission } from "@/features/referrals/schemas"
+import {
+  type AssessmentRecord,
+  type NewAssessment,
+  type NewDocument,
+  type ResidentDocument,
+} from "@/features/resident-records/schemas"
+import { isLocked } from "@/features/residents/presentation"
+import { type ResidentDetail } from "@/features/residents/schemas"
 import { type Concern, type NewConcern } from "@/features/safeguarding/schemas"
 import { type InviteUser, type NotificationSettings } from "@/features/settings/schemas"
 import {
@@ -15,7 +23,9 @@ import {
 } from "@/features/support-requests/schemas"
 import { env } from "@/lib/env"
 
+import { buildActions, replyToAction } from "./action-centre"
 import { db, mockAuth, nextId, nowIso, todayIso } from "./db"
+import { outcomeAssessmentsFixture } from "./fixtures/outcome-assessments"
 
 const api = (path: string) => `${env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}${path}`
 const PAGE_SIZE = 20
@@ -38,6 +48,24 @@ function matchesActivityFilter(filter: ActivityFilter, a: (typeof db.activity)[n
     default:
       return true
   }
+}
+
+/** Stores an upload; a document of the same type becomes the next version. */
+function addDocument(residentId: string, doc: NewDocument, uploadedBy: string) {
+  const versions = db.documents.filter((d) => d.residentId === residentId && d.type === doc.type)
+  const created: ResidentDocument = {
+    id: nextId("DOC"),
+    residentId,
+    name: doc.name,
+    size: doc.size,
+    type: doc.type,
+    version: versions.length + 1,
+    uploadedAt: todayIso(),
+    uploadedBy,
+    status: "RECEIVED",
+  }
+  db.documents.unshift(created)
+  return created
 }
 
 /** Mirrors the DRF contract so swapping to the real API is a config change, not a code change. */
@@ -86,28 +114,32 @@ export const handlers = [
     return HttpResponse.json({ ...db.dashboard, pendingAssignments: pending })
   }),
 
-  // Clients
-  http.get(api("/clients"), async ({ request }) => {
+  // Residents
+  http.get(api("/residents"), async ({ request }) => {
     await delay()
     const params = new URL(request.url).searchParams
     const status = params.get("status")
     const needsResponse = params.get("needs_response") === "true"
+    const awaitingMatch = params.get("awaiting_match") === "true"
     const closed = params.get("closed") === "true"
     const area = params.get("area")
     const search = params.get("search")?.toLowerCase()
     const page = Number(params.get("page") ?? 1)
 
-    const filtered = db.clients.filter(
-      (client) =>
+    const filtered = db.residents.filter(
+      (resident) =>
         // Closed and deceased records only appear in the closed view.
-        isLocked(client.programmeStatus) === closed &&
-        (!status || client.programmeStatus === status) &&
-        (!area || client.postcodeDistrict === area) &&
-        (!needsResponse || client.needsProviderResponse) &&
+        isLocked(resident.programmeStatus) === closed &&
+        (!status || resident.programmeStatus === status) &&
+        (!area || resident.area === area) &&
+        (!needsResponse || resident.needsProviderResponse) &&
+        (!awaitingMatch || resident.volunteerMatchStatus === "AWAITING_MATCH") &&
         (!search ||
-          client.id.toLowerCase().includes(search) ||
-          client.postcodeDistrict.toLowerCase().includes(search) ||
-          client.supportGoals.some((goal) => goal.toLowerCase().includes(search))),
+          resident.id.toLowerCase().includes(search) ||
+          resident.name.toLowerCase().includes(search) ||
+          resident.area.toLowerCase().includes(search) ||
+          resident.postcodeDistrict.toLowerCase().includes(search) ||
+          resident.supportGoals.some((goal) => goal.toLowerCase().includes(search))),
     )
     const start = (page - 1) * PAGE_SIZE
     return HttpResponse.json({
@@ -118,12 +150,17 @@ export const handlers = [
     })
   }),
 
-  http.get(api("/clients/:id"), async ({ params }) => {
+  http.get(api("/residents/directory"), async () => {
     await delay()
-    const client = db.clients.find((c) => c.id === params.id)
-    if (!client) return notFound()
-    const detail: ClientDetail = {
-      ...client,
+    return HttpResponse.json(db.residents.map(({ id, name }) => ({ id, name })))
+  }),
+
+  http.get(api("/residents/:id"), async ({ params }) => {
+    await delay()
+    const resident = db.residents.find((c) => c.id === params.id)
+    if (!resident) return notFound()
+    const detail: ResidentDetail = {
+      ...resident,
       permittedActivities: [
         "Companionship visit",
         "Telephone check-in",
@@ -132,13 +169,13 @@ export const handlers = [
         "Light practical support",
       ],
       consent: {
-        status: client.consentStatus,
+        status: resident.consentStatus,
         lawfulBasis: "Public task (Care Act 2014)",
-        recordedAt: client.consentStatus === "GIVEN" ? "2026-09-01" : null,
-        recordedBy: client.consentStatus === "GIVEN" ? "Sarah M." : null,
+        recordedAt: resident.consentStatus === "GIVEN" ? "2026-09-01" : null,
+        recordedBy: resident.consentStatus === "GIVEN" ? "Sarah M." : null,
       },
       history: [
-        ...(client.programmeStatus === "DECEASED"
+        ...(resident.programmeStatus === "DECEASED"
           ? [
               {
                 id: "h-closed",
@@ -150,7 +187,7 @@ export const handlers = [
             ]
           : []),
         ...db.activity
-          .filter((a) => a.clientId === client.id && a.status === "COMPLETED")
+          .filter((a) => a.residentId === resident.id && a.status === "COMPLETED")
           .slice(0, 3)
           .map((a) => ({
             id: `h-${a.id}`,
@@ -190,8 +227,8 @@ export const handlers = [
     await delay()
     const params = new URL(request.url).searchParams
     const filter = (params.get("filter") ?? "all") as ActivityFilter
-    const clientId = params.get("client")
-    const scoped = clientId ? db.activity.filter((a) => a.clientId === clientId) : db.activity
+    const residentId = params.get("resident")
+    const scoped = residentId ? db.activity.filter((a) => a.residentId === residentId) : db.activity
     const filters: ActivityFilter[] = ["all", "today", "upcoming", "needs_response", "missed"]
     const completed = db.activity.filter((a) => a.status === "COMPLETED")
     return HttpResponse.json({
@@ -221,10 +258,10 @@ export const handlers = [
       respondedAt: nowIso(),
       by: db.session.user.displayName,
     }
-    const client = db.clients.find((c) => c.id === record.clientId)
-    if (client) client.needsProviderResponse = false
+    const resident = db.residents.find((c) => c.id === record.residentId)
+    if (resident) resident.needsProviderResponse = false
     db.dashboard.actions = db.dashboard.actions.filter(
-      (a) => a.relatedTo.ref !== record.clientId || a.cta !== "RESPOND",
+      (a) => a.relatedTo.ref !== record.residentId || a.cta !== "RESPOND",
     )
     return HttpResponse.json(record)
   }),
@@ -267,9 +304,9 @@ export const handlers = [
     await delay()
     const params = new URL(request.url).searchParams
     const status = params.get("status")
-    const clientId = params.get("client")
-    const scoped = clientId
-      ? db.supportRequests.filter((r) => r.clientId === clientId)
+    const residentId = params.get("resident")
+    const scoped = residentId
+      ? db.supportRequests.filter((r) => r.residentId === residentId)
       : db.supportRequests
     return HttpResponse.json({
       counts: Object.fromEntries(
@@ -282,13 +319,13 @@ export const handlers = [
   http.post(api("/support-requests"), async ({ request }) => {
     await delay()
     const body = (await request.json()) as NewSupportRequest
-    const client = db.clients.find((c) => c.id === body.clientId)
-    if (client && isLocked(client.programmeStatus)) {
-      return HttpResponse.json({ detail: "This client record is closed." }, { status: 409 })
+    const resident = db.residents.find((c) => c.id === body.residentId)
+    if (resident && isLocked(resident.programmeStatus)) {
+      return HttpResponse.json({ detail: "This resident record is closed." }, { status: 409 })
     }
     const created: SupportRequest = {
       id: nextId("SR-2026"),
-      clientId: body.clientId,
+      residentId: body.residentId,
       type: body.type,
       goal: body.goal,
       frequency: body.frequency,
@@ -303,6 +340,60 @@ export const handlers = [
     return HttpResponse.json(created, { status: 201 })
   }),
 
+  // Resident records: wellbeing assessments and documents shared with the Council
+  http.get(api("/residents/:id/assessments"), async ({ params }) => {
+    await delay()
+    return HttpResponse.json(
+      db.assessments
+        .filter((a) => a.residentId === params.id)
+        .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)),
+    )
+  }),
+
+  http.post(api("/residents/:id/assessments"), async ({ params, request }) => {
+    await delay()
+    const residentId = String(params.id)
+    const body = (await request.json()) as NewAssessment
+    const rules = evaluateRules(body.answers)
+    if (rules.some((r) => r.kind === "stop" || r.kind === "pause")) {
+      return HttpResponse.json(
+        { detail: "This assessment has a stop or pause rule and cannot be sent yet." },
+        { status: 400 },
+      )
+    }
+    const created: AssessmentRecord = {
+      id: nextId("WA-2026"),
+      residentId,
+      kind: body.kind,
+      status: "RECEIVED",
+      submittedAt: todayIso(),
+      completedBy: body.completedBy,
+      reviewFlags: rules.length,
+      notKnown: notKnownCount(body.answers),
+      answers: body.answers,
+      councilNote: null,
+    }
+    db.assessments.unshift(created)
+    for (const doc of body.documents) addDocument(residentId, doc, body.completedBy)
+    return HttpResponse.json(created, { status: 201 })
+  }),
+
+  http.get(api("/residents/:id/documents"), async ({ params }) => {
+    await delay()
+    return HttpResponse.json(
+      db.documents
+        .filter((d) => d.residentId === params.id)
+        .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt)),
+    )
+  }),
+
+  http.post(api("/residents/:id/documents"), async ({ params, request }) => {
+    await delay()
+    const body = (await request.json()) as NewDocument
+    const created = addDocument(String(params.id), body, db.session.user.displayName)
+    return HttpResponse.json(created, { status: 201 })
+  }),
+
   // Referrals (provider -> council)
   http.get(api("/referrals"), async () => {
     await delay()
@@ -311,16 +402,23 @@ export const handlers = [
 
   http.post(api("/referrals"), async ({ request }) => {
     await delay()
-    const body = (await request.json()) as NewReferral
+    const body = (await request.json()) as ReferralSubmission
+    const rules = evaluateRules(body.answers)
+    if (rules.some((r) => r.kind === "stop" || r.kind === "pause")) {
+      return HttpResponse.json(
+        { detail: "This assessment has a stop or pause rule and cannot be sent yet." },
+        { status: 400 },
+      )
+    }
     const created: Referral = {
       id: nextId("REF-2026"),
-      providerRef: body.providerRef,
-      ageBand: body.ageBand,
-      postcodeDistrict: body.postcodeDistrict,
-      supportTypes: body.supportTypes,
-      status: "SUBMITTED",
+      residentName: body.person.fullName,
+      postcode: body.person.postcode,
+      stage: "SENT",
       submittedAt: todayIso(),
-      clientId: null,
+      documents: body.documents,
+      reviewFlags: rules.length,
+      residentId: null,
       councilNote: null,
     }
     db.referrals.unshift(created)
@@ -393,6 +491,40 @@ export const handlers = [
   http.get(api("/outcomes/summary"), async () => {
     await delay()
     return HttpResponse.json(db.outcomes)
+  }),
+
+  // Action Centre
+  http.get(api("/action-centre/actions"), async () => {
+    await delay()
+    return HttpResponse.json(buildActions())
+  }),
+
+  http.post(api("/action-centre/actions/:id/reply"), async ({ params, request }) => {
+    await delay()
+    const action = buildActions().find((a) => a.id === params.id)
+    if (!action) return notFound()
+    if (!action.canReply) {
+      return HttpResponse.json(
+        { detail: "This action is completed from its source record." },
+        { status: 409 },
+      )
+    }
+    const input = (await request.json()) as ActionReplyInput
+    if (!input.message?.trim()) {
+      return HttpResponse.json({ message: ["Write a reply for the Council."] }, { status: 400 })
+    }
+    const by = db.session.user.displayName
+    replyToAction(action, input, by)
+    // Files sent for a resident land in their Documents tab, waiting for the Council to verify.
+    if (action.residentId) {
+      for (const file of input.files) addDocument(action.residentId, file, by)
+    }
+    return HttpResponse.json(buildActions().find((a) => a.id === action.id))
+  }),
+
+  http.get(api("/outcomes/assessments"), async () => {
+    await delay()
+    return HttpResponse.json(outcomeAssessmentsFixture)
   }),
 
   http.get(api("/reports"), async () => {

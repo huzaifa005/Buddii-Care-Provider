@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
 
-import { clientKeys } from "@/features/clients/api"
 import { homeKeys } from "@/features/home/api"
+import { residentKeys } from "@/features/residents/api"
 import { apiClient } from "@/lib/api/client"
 import { useQuery } from "@/lib/api/use-query"
 
@@ -14,22 +14,22 @@ import {
 
 export const activityKeys = {
   all: ["activity"] as const,
-  list: (filter: ActivityFilter, clientId?: string) =>
-    [...activityKeys.all, "list", { filter, clientId }] as const,
+  list: (filter: ActivityFilter, residentId?: string) =>
+    [...activityKeys.all, "list", { filter, residentId }] as const,
 }
 
-export const activityListQuery = (filter: ActivityFilter, clientId?: string) =>
+export const activityListQuery = (filter: ActivityFilter, residentId?: string) =>
   queryOptions({
-    queryKey: activityKeys.list(filter, clientId),
+    queryKey: activityKeys.list(filter, residentId),
     queryFn: () =>
       apiClient.get("/activity", {
         schema: activityListSchema,
-        query: { filter, client: clientId },
+        query: { filter, resident: residentId },
       }),
   })
 
-export function useActivity(filter: ActivityFilter, clientId?: string) {
-  return useQuery(activityListQuery(filter, clientId))
+export function useActivity(filter: ActivityFilter, residentId?: string) {
+  return useQuery(activityListQuery(filter, residentId))
 }
 
 export function useRecordResponse() {
@@ -40,7 +40,7 @@ export function useRecordResponse() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: activityKeys.all }),
-        queryClient.invalidateQueries({ queryKey: clientKeys.all }),
+        queryClient.invalidateQueries({ queryKey: residentKeys.all }),
         queryClient.invalidateQueries({ queryKey: homeKeys.all }),
       ]),
   })

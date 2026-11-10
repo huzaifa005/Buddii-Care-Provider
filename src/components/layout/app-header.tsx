@@ -102,7 +102,7 @@ function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel className="font-normal">
-          <p className="text-sm font-medium">{user.displayName}</p>
+          <p className="text-sm font-semibold text-heading">{user.displayName}</p>
           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {session.organisation.name} · {session.organisation.programme}

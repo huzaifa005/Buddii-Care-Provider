@@ -7,10 +7,11 @@ import { format, parseISO } from "date-fns"
  */
 export const UK_TIME_ZONE = "Europe/London"
 
-const ukDayMonth = new Intl.DateTimeFormat("en-GB", {
+const ukDate = new Intl.DateTimeFormat("en-GB", {
   timeZone: UK_TIME_ZONE,
-  day: "numeric",
+  day: "2-digit",
   month: "short",
+  year: "numeric",
 })
 const ukTime = new Intl.DateTimeFormat("en-GB", {
   timeZone: UK_TIME_ZONE,
@@ -23,7 +24,7 @@ const ukIsoDate = new Intl.DateTimeFormat("en-CA", { timeZone: UK_TIME_ZONE })
 
 const isDateOnly = (value: string) => !value.includes("T")
 
-/** "River Garden Care" -> "RG" */
+/** "Bromley Care Services" -> "BC" */
 export function initials(name: string, max = 2) {
   return name
     .split(/\s+/)
@@ -33,14 +34,17 @@ export function initials(name: string, max = 2) {
     .join("")
 }
 
-/** UK display format for ISO dates from the API, e.g. "6 Jul 2026". */
-export function formatDate(isoDate: string) {
-  return format(parseISO(isoDate), "d MMM yyyy")
+/** Council date format, DD Mon YYYY, e.g. "06 Jul 2026". Datetimes are converted to UK time first. */
+export function formatDate(iso: string) {
+  return isDateOnly(iso) ? format(parseISO(iso), "dd MMM yyyy") : ukDate.format(new Date(iso))
 }
 
-/** Compact day and month, e.g. "21 Oct". Datetimes are converted to UK time first. */
-export function formatDayMonth(iso: string) {
-  return isDateOnly(iso) ? format(parseISO(iso), "d MMM") : ukDayMonth.format(new Date(iso))
+/** Same as `formatDate`. Kept so older call sites read the same; every date shows its year. */
+export const formatDayMonth = formatDate
+
+/** Chart axis ticks only, where space is tight: "21 Oct". Tooltips use `formatDate`. */
+export function formatChartTick(iso: string) {
+  return format(parseISO(iso), "dd MMM")
 }
 
 /** 24-hour UK time, e.g. "13:00". */

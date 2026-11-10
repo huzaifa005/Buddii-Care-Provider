@@ -8,7 +8,7 @@ import { type ActionItem } from "../schemas"
  * A coordinator checking in at 9am must not miss a welfare flag from the day before.
  */
 export function ObservationAlert({ actions }: { actions: ActionItem[] }) {
-  const observations = actions.filter((a) => a.cta === "RESPOND" && a.relatedTo.kind === "CLIENT")
+  const observations = actions.filter((a) => a.cta === "RESPOND" && a.relatedTo.kind === "RESIDENT")
   if (observations.length === 0) return null
 
   const count = observations.length

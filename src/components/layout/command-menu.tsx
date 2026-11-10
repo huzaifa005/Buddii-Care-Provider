@@ -17,15 +17,15 @@ import {
 } from "@/components/ui/command"
 import { Kbd } from "@/components/ui/kbd"
 import { PORTAL_NAV } from "@/config/navigation"
-import { useClients } from "@/features/clients/api"
-import { residentHref } from "@/features/clients/components/client-link"
+import { useResidents } from "@/features/residents/api"
+import { residentHref } from "@/features/residents/components/resident-link"
 
 /** Global search and quick actions (Ctrl/Cmd + K). Searches Buddii IDs only, never names. */
 export function CommandMenu() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   // Only fetch residents once the palette is opened.
-  const clients = useClients({}, { enabled: open })
+  const residents = useResidents({}, { enabled: open })
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -71,7 +71,7 @@ export function CommandMenu() {
       >
         {/* The shadcn dialog does not provide the cmdk root; it must wrap the input and list. */}
         <Command>
-          <CommandInput placeholder="Type a Buddii ID, page or action…" />
+          <CommandInput placeholder="Type a name, Buddii ID, page or action…" />
           <CommandList>
             <CommandEmpty>No results.</CommandEmpty>
             <CommandGroup heading="Actions">
@@ -97,20 +97,20 @@ export function CommandMenu() {
                 </CommandItem>
               ))}
             </CommandGroup>
-            {clients.data && (
+            {residents.data && (
               <>
                 <CommandSeparator />
                 <CommandGroup heading="Residents">
-                  {clients.data.results.map((c) => (
+                  {residents.data.results.map((c) => (
                     <CommandItem
                       key={c.id}
-                      value={`${c.id} ${c.postcodeDistrict} ${c.supportGoals.join(" ")}`}
+                      value={`${c.name} ${c.id} ${c.area} ${c.supportGoals.join(" ")}`}
                       onSelect={() => go(residentHref(c.id))}
                     >
                       <User aria-hidden />
-                      <span className="tabular-nums">{c.id}</span>
-                      <CommandShortcut>
-                        {c.ageBand} · {c.postcodeDistrict}
+                      <span>{c.name}</span>
+                      <CommandShortcut className="tabular-nums">
+                        {c.id} · {c.area}
                       </CommandShortcut>
                     </CommandItem>
                   ))}

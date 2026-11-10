@@ -9,7 +9,7 @@ describe("AssignmentsView", () => {
   it("lists assignments awaiting a response", async () => {
     renderWithProviders(<AssignmentsView />)
 
-    expect(await screen.findByText("ASN-2026-051")).toBeInTheDocument()
+    expect(await screen.findByText("Gloria Stern")).toBeInTheDocument()
     expect(screen.getAllByRole("button", { name: /confirm participation/i })).toHaveLength(3)
   })
 

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Panel, PanelHeader } from "@/components/shared/panel"
 import { StatusDot } from "@/components/shared/status-dot"
 import { Button } from "@/components/ui/button"
-import { ClientLink } from "@/features/clients/components/client-link"
+import { ResidentLink } from "@/features/residents/components/resident-link"
 import { formatTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -48,7 +48,7 @@ export function TodayVisits({ visits }: { visits: Visit[] }) {
                 </div>
                 <div className={cn("min-w-0 flex-1", !last && "pb-5")}>
                   <p className="text-sm font-medium text-heading">
-                    <ClientLink clientId={visit.clientId} className="hover:underline" />
+                    <ResidentLink residentId={visit.residentId} className="hover:underline" />
                     <span className="font-normal text-muted-foreground"> · {visit.type}</span>
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -56,7 +56,7 @@ export function TodayVisits({ visits }: { visits: Visit[] }) {
                   </p>
                   <StatusDot tone={status.tone} className="mt-1.5">
                     {status.label}
-                    {visit.wellbeingScore !== null && ` · wellbeing ${visit.wellbeingScore}/5`}
+                    {visit.wellbeingScore !== null && ` · visit check ${visit.wellbeingScore}/5`}
                   </StatusDot>
                 </div>
               </li>

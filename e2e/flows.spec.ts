@@ -13,7 +13,7 @@ test.describe("key provider journeys", () => {
     await page.goto("/messages")
     await expect(page).toHaveURL(/\/login\?next=%2Fmessages/)
 
-    await page.getByLabel(/work email/i).fill("sarah.m@rivergarden.example")
+    await page.getByLabel(/work email/i).fill("sarah.m@bromleycare.example")
     await page.getByLabel(/^password$/i).fill("wrong")
     await page.getByRole("button", { name: /sign in/i }).click()
     await expect(page.getByText("Email or password is incorrect.")).toBeVisible()
@@ -78,18 +78,18 @@ test.describe("key provider journeys", () => {
     await waitForPage(page, /good (morning|afternoon|evening)/i)
 
     await page.getByRole("button", { name: /search residents, pages/i }).click()
-    await page.getByPlaceholder(/type a buddii id/i).fill("BUD-0062")
-    await page.getByRole("option", { name: /BUD-0062/ }).click()
+    await page.getByPlaceholder(/type a name, buddii id/i).fill("Arthur")
+    await page.getByRole("option", { name: /Arthur Miller/ }).click()
 
     await expect(page).toHaveURL(/\/residents\/BUD-0062$/)
-    await waitForPage(page, "BUD-0062")
+    await waitForPage(page, "Arthur Miller")
   })
 
-  test("an old client link opens the resident profile", async ({ page }) => {
-    await page.goto("/clients/BUD-0033")
+  test("an old resident link opens the resident profile", async ({ page }) => {
+    await page.goto("/residents/BUD-0033")
 
     await expect(page).toHaveURL(/\/residents\/BUD-0033$/)
-    await waitForPage(page, "BUD-0033")
+    await waitForPage(page, "Joan Whitfield")
     await expect(page.getByText("A volunteer observation needs your response.")).toBeVisible()
     await expectAccessible(page)
   })
@@ -98,8 +98,8 @@ test.describe("key provider journeys", () => {
     await page.goto("/residents")
     await waitForPage(page, /^residents$/i)
 
-    await page.getByRole("link", { name: "BUD-0018" }).click()
-    await waitForPage(page, "BUD-0018")
+    await page.getByRole("link", { name: "Harold Bennett" }).click()
+    await waitForPage(page, "Harold Bennett")
     await page.getByRole("tab", { name: "4. Outcomes" }).click()
     await expect(page).toHaveURL(/\/residents\/BUD-0018\?tab=outcomes$/)
     await page.getByRole("link", { name: "Residents", exact: true }).first().click()

@@ -4,7 +4,7 @@ import { loginPath, safeRedirectPath } from "./redirect"
 
 describe("safeRedirectPath", () => {
   it.each([
-    ["/clients/BUD-0009?tab=outcomes", "/clients/BUD-0009?tab=outcomes"],
+    ["/residents/BUD-0009?tab=outcomes", "/residents/BUD-0009?tab=outcomes"],
     ["/support-requests#new", "/support-requests#new"],
   ])("keeps same-origin path %s", (input, expected) => {
     expect(safeRedirectPath(input)).toBe(expected)
@@ -15,7 +15,7 @@ describe("safeRedirectPath", () => {
     "//evil.example/phish",
     "/\\evil.example",
     "javascript:alert(1)",
-    "clients",
+    "residents",
     "/login?next=/login",
     "",
     null,

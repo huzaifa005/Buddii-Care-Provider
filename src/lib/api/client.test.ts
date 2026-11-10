@@ -22,13 +22,13 @@ describe("apiClient", () => {
   it("builds the URL from the API base and drops empty query values", async () => {
     const fetchMock = mockFetch(200, { id: "1" })
 
-    await apiClient.get("/clients", {
+    await apiClient.get("/residents", {
       schema,
       query: { status: "ACTIVE", search: "", page: undefined },
     })
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost/api/v1/clients?status=ACTIVE",
+      "http://localhost/api/v1/residents?status=ACTIVE",
       expect.any(Object),
     )
   })

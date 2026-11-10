@@ -20,7 +20,7 @@ import { toast } from "sonner"
 import { EmptyState, QueryBoundary } from "@/components/shared/query-boundary"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
-import { residentHref } from "@/features/clients/components/client-link"
+import { residentHref } from "@/features/residents/components/resident-link"
 import { useCan, useSession } from "@/features/session/api"
 import { formatDate, formatDayMonth, formatTime, initials, isToday } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -77,7 +77,7 @@ export function MessagesView() {
             (filter === "all" || t.unread > 0) &&
             (!term ||
               t.subject.toLowerCase().includes(term) ||
-              t.clientRef?.toLowerCase().includes(term)),
+              t.residentRef?.toLowerCase().includes(term)),
         )
         const active = threads.find((t) => t.id === selected) ?? visible[0] ?? threads[0]
         return (
@@ -171,13 +171,7 @@ export function MessagesView() {
   )
 }
 
-function CoordinatorAvatar({
-  size = "md",
-  online = false,
-}: {
-  size?: "sm" | "md" | "lg"
-  online?: boolean
-}) {
+function CoordinatorAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   return (
     <span
       className={cn(
@@ -188,10 +182,7 @@ function CoordinatorAvatar({
       )}
       aria-hidden
     >
-      VC
-      {online && (
-        <span className="absolute right-0 bottom-0 size-[13px] rounded-full border-2 border-white bg-chat-online" />
-      )}
+      ER
     </span>
   )
 }
@@ -217,7 +208,7 @@ function ThreadRow({
           active ? "border-r-2 border-r-chat-sent bg-chat-active" : "hover:bg-chat-soft/60",
         )}
       >
-        <CoordinatorAvatar online />
+        <CoordinatorAvatar />
         <span className="min-w-0 flex-1 space-y-1">
           <span className="flex items-baseline justify-between gap-2">
             <span className="truncate text-base font-semibold text-chat-ink">{t.participant}</span>
@@ -237,9 +228,9 @@ function ThreadRow({
             <span className="rounded-full bg-chat-tag px-2 py-0.5 text-[11px] font-medium text-chat-tag-foreground">
               Coordinator
             </span>
-            {t.clientRef && (
+            {t.residentRef && (
               <span className="rounded-full bg-info-soft px-2 py-0.5 text-[11px] font-medium text-info-foreground tabular-nums">
-                {t.clientRef}
+                {t.residentRef}
               </span>
             )}
           </span>
@@ -309,12 +300,11 @@ function Conversation({
         >
           <ChevronLeft className="size-5" aria-hidden />
         </button>
-        <CoordinatorAvatar online />
+        <CoordinatorAvatar />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-lg font-semibold text-chat-ink">{thread.participant}</h2>
           <p className="flex min-w-0 items-center gap-1.5 text-[13px] text-chat-muted">
-            <span className="size-2 shrink-0 rounded-full bg-chat-online" aria-hidden />
-            <span className="truncate">Online · {thread.subject}</span>
+            <span className="truncate">{thread.subject}</span>
           </p>
         </div>
         <span className="hidden items-center gap-1.5 rounded-full border border-chat-line px-3 py-1 text-xs text-chat-muted sm:flex">
@@ -335,12 +325,12 @@ function Conversation({
         </button>
       </header>
 
-      {thread.clientRef && (
+      {thread.residentRef && (
         <div className="flex items-center gap-2 border-b border-chat-context-line bg-chat-active px-4 py-3 text-[13px] sm:px-6">
           <span className="font-semibold tracking-wide text-chat-sent uppercase">Resident:</span>
-          <span className="font-medium text-chat-sent tabular-nums">{thread.clientRef}</span>
+          <span className="font-medium text-chat-sent tabular-nums">{thread.residentRef}</span>
           <Link
-            href={residentHref(thread.clientRef)}
+            href={residentHref(thread.residentRef)}
             className="ml-1 inline-flex items-center gap-1 text-chat-sent underline-offset-2 hover:underline"
           >
             View profile
@@ -382,7 +372,7 @@ function Conversation({
         </p>
       ) : (
         <div className="border-t bg-card">
-          <div className="flex gap-2 overflow-x-auto px-4 pt-4 sm:px-6">
+          <div className="flex flex-wrap gap-2 px-4 pt-4 sm:px-6">
             {QUICK_REPLIES.map((reply) => (
               <button
                 key={reply}
@@ -526,17 +516,17 @@ function ThreadDetails({ thread, onClose }: { thread: Thread; onClose: () => voi
           </dt>
         </div>
       </dl>
-      {thread.clientRef && (
+      {thread.residentRef && (
         <div className="space-y-3 border-b p-5">
           <p className="text-[11px] font-semibold tracking-[0.08em] text-chat-subtle uppercase">
             Related resident
           </p>
           <Link
-            href={residentHref(thread.clientRef)}
+            href={residentHref(thread.residentRef)}
             className="block rounded-xl border border-chat-context-line bg-chat-active px-4 py-3 hover:border-chat-sent/40"
           >
             <span className="block font-semibold text-chat-ink tabular-nums">
-              {thread.clientRef}
+              {thread.residentRef}
             </span>
             <span className="block text-sm text-chat-muted">Open resident profile</span>
           </Link>

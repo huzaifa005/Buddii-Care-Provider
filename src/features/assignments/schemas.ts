@@ -4,7 +4,9 @@ import { z } from "zod"
 export const assignmentSchema = z.object({
   id: z.string(),
   councilRef: z.string(),
+  residentName: z.string(),
   ageBand: z.string(),
+  area: z.string(),
   postcodeDistrict: z.string(),
   goals: z.array(z.string()),
   context: z.string(),

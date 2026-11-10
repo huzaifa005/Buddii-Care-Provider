@@ -3,11 +3,19 @@
 import * as React from "react"
 import { cn } from "cn"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+function Table({
+  className,
+  scrollLabel,
+  ...props
+}: React.ComponentProps<"table"> & {
+  /** For tables with nothing focusable inside: lets keyboard users scroll them on small screens. */
+  scrollLabel?: string
+}) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-x-auto focus-visible:ring-3 focus-visible:ring-ring/20 focus-visible:outline-none"
+      {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}
     >
       <table
         data-slot="table"

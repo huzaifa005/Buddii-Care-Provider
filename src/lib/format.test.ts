@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest"
 
-import { formatDayMonth, formatTime, initials, isToday } from "./format"
+import { formatChartTick, formatDate, formatTime, initials, isToday } from "./format"
 
 describe("format", () => {
   it("shows datetimes in UK time regardless of the device time zone", () => {
     // 10:30 BST, sent with a UTC offset.
     expect(formatTime("2026-10-19T09:30:00Z")).toBe("10:30")
     // Crosses midnight in UTC but not in the UK.
-    expect(formatDayMonth("2026-07-05T23:30:00Z")).toBe("6 Jul")
+    expect(formatDate("2026-07-05T23:30:00Z")).toBe("06 Jul 2026")
   })
 
-  it("leaves date-only values untouched", () => {
-    expect(formatDayMonth("2026-10-21")).toBe("21 Oct")
+  it("uses the Council format DD Mon YYYY; chart ticks drop the year", () => {
+    expect(formatDate("2026-10-01")).toBe("01 Oct 2026")
+    expect(formatChartTick("2026-10-01")).toBe("01 Oct")
   })
 
   it("treats today as the UK calendar day", () => {

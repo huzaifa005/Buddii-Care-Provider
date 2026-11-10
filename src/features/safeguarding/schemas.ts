@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { buddiiIdSchema } from "@/features/clients/schemas"
+import { buddiiIdSchema } from "@/features/residents/schemas"
 
 export const CONCERN_CATEGORIES = [
   "Physical welfare",
@@ -14,7 +14,7 @@ export const CONCERN_CATEGORIES = [
 
 export const concernSchema = z.object({
   id: z.string(),
-  clientId: buddiiIdSchema,
+  residentId: buddiiIdSchema,
   category: z.enum(CONCERN_CATEGORIES),
   severity: z.enum(["CRITICAL", "HIGH", "MEDIUM"]),
   description: z.string(),
@@ -27,7 +27,7 @@ export const concernSchema = z.object({
 export type Concern = z.infer<typeof concernSchema>
 
 export const newConcernSchema = z.object({
-  clientId: z.string().min(1, "Choose a resident"),
+  residentId: z.string().min(1, "Choose a resident"),
   severity: z.enum(["CRITICAL", "HIGH", "MEDIUM"]),
   category: z.enum(CONCERN_CATEGORIES),
   description: z.string().trim().min(20, "Describe what was observed, when and by whom"),

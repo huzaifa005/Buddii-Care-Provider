@@ -11,14 +11,16 @@ import {
 } from "@/features/settings/schemas"
 import { type SupportRequest } from "@/features/support-requests/schemas"
 
-/** Anonymised demo data for the remaining portal sections. No real names or PII. */
+/** Demo data for Bromley Care Services (LB Bromley). Names follow the Council dummy data. */
 
 export const assignmentsFixture: Assignment[] = [
   {
     id: "ASN-2026-051",
-    councilRef: "NWH-2026-0703",
+    councilRef: "RBC-90311",
+    residentName: "Gloria Stern",
     ageBand: "75-79",
-    postcodeDistrict: "E13",
+    area: "Chislehurst",
+    postcodeDistrict: "BR7",
     goals: ["Social engagement", "Telephone check-ins", "Community activity"],
     context: "Recently moved to sheltered housing and keen to meet people locally.",
     receivedAt: "2026-10-17",
@@ -28,9 +30,11 @@ export const assignmentsFixture: Assignment[] = [
   },
   {
     id: "ASN-2026-049",
-    councilRef: "NWH-2026-0697",
+    councilRef: "RBC-90466",
+    residentName: "Betty Shaw",
     ageBand: "85-89",
-    postcodeDistrict: "E6",
+    area: "Bromley Central",
+    postcodeDistrict: "BR1",
     goals: ["Companionship", "Light practical support"],
     context: "Lives alone; family visit monthly. Enjoys crosswords and radio.",
     receivedAt: "2026-10-16",
@@ -40,10 +44,12 @@ export const assignmentsFixture: Assignment[] = [
   },
   {
     id: "ASN-2026-047",
-    councilRef: "NWH-2026-0691",
+    councilRef: "RBC-90471",
+    residentName: "Ronald Pike",
     ageBand: "80-84",
-    postcodeDistrict: "E15",
-    goals: ["Reducing isolation", "Confidence building", "Shopping assistance"],
+    area: "Beckenham",
+    postcodeDistrict: "BR3",
+    goals: ["Reducing isolation", "Getting out again", "Shopping assistance"],
     context: "Returning home after a short hospital stay. Would like help getting out again.",
     receivedAt: "2026-10-14",
     status: "PENDING",
@@ -52,9 +58,11 @@ export const assignmentsFixture: Assignment[] = [
   },
   {
     id: "ASN-2026-041",
-    councilRef: "NWH-2026-0662",
+    councilRef: "RBC-90380",
+    residentName: "Joan Whitfield",
     ageBand: "70-74",
-    postcodeDistrict: "E12",
+    area: "Beckenham",
+    postcodeDistrict: "BR3",
     goals: ["Community participation"],
     context: "Referred after a period of low mood.",
     receivedAt: "2026-09-30",
@@ -64,9 +72,11 @@ export const assignmentsFixture: Assignment[] = [
   },
   {
     id: "ASN-2026-036",
-    councilRef: "NWH-2026-0640",
+    councilRef: "RBC-90298",
+    residentName: "Walter Grey",
     ageBand: "90-94",
-    postcodeDistrict: "E17",
+    area: "Outside LB Bromley",
+    postcodeDistrict: "SE9",
     goals: ["Companionship"],
     context: "Outside our current area.",
     receivedAt: "2026-09-21",
@@ -79,7 +89,7 @@ export const assignmentsFixture: Assignment[] = [
 export const supportRequestsFixture: SupportRequest[] = [
   {
     id: "SR-2026-007",
-    clientId: "BUD-0062",
+    residentId: "BUD-0062",
     type: "Shopping support",
     goal: "Weekly shopping assistance to build independence",
     frequency: "WEEKLY",
@@ -92,7 +102,7 @@ export const supportRequestsFixture: SupportRequest[] = [
   },
   {
     id: "SR-2026-006",
-    clientId: "BUD-0009",
+    residentId: "BUD-0009",
     type: "Shopping support",
     goal: "Fortnightly trip to the local shops for independence",
     frequency: "FORTNIGHTLY",
@@ -105,7 +115,7 @@ export const supportRequestsFixture: SupportRequest[] = [
   },
   {
     id: "SR-2026-008",
-    clientId: "BUD-0044",
+    residentId: "BUD-0044",
     type: "Companionship visit",
     goal: "Post-hospital social reconnection",
     frequency: "WEEKLY",
@@ -118,66 +128,66 @@ export const supportRequestsFixture: SupportRequest[] = [
   },
   {
     id: "SR-2026-005",
-    clientId: "BUD-0062",
+    residentId: "BUD-0062",
     type: "Social engagement",
-    goal: "Community participation to support recovery and confidence",
+    goal: "Community participation to support recovery and getting out again",
     frequency: "WEEKLY",
     preferredTime: "AFTERNOON",
     riskLevel: "STANDARD",
     status: "ACTIVE",
-    volunteerRef: "V-ID-0023",
+    volunteerRef: "Tom Fletcher",
     createdAt: "2026-09-15",
     reviewDate: "2026-11-30",
   },
   {
     id: "SR-2026-004",
-    clientId: "BUD-0033",
+    residentId: "BUD-0033",
     type: "Companionship visit",
     goal: "Cognitive stimulation and social engagement",
     frequency: "WEEKLY",
     preferredTime: "MORNING",
     riskLevel: "ELEVATED",
     status: "ACTIVE",
-    volunteerRef: "V-ID-0023",
+    volunteerRef: "Tom Fletcher",
     createdAt: "2026-09-10",
     reviewDate: "2026-11-30",
   },
   {
     id: "SR-2026-002",
-    clientId: "BUD-0018",
+    residentId: "BUD-0018",
     type: "Companionship visit",
     goal: "Social support and gentle activity during recovery",
     frequency: "WEEKLY",
     preferredTime: "MORNING",
     riskLevel: "STANDARD",
     status: "ACTIVE",
-    volunteerRef: "V-ID-0019",
+    volunteerRef: "Emma Taylor",
     createdAt: "2026-09-03",
     reviewDate: "2026-11-30",
   },
   {
     id: "SR-2026-001",
-    clientId: "BUD-0009",
+    residentId: "BUD-0009",
     type: "Companionship visit",
     goal: "Reduce social isolation through weekly companionship",
     frequency: "WEEKLY",
     preferredTime: "MORNING",
     riskLevel: "STANDARD",
     status: "ACTIVE",
-    volunteerRef: "V-ID-0007",
+    volunteerRef: "David Wilson",
     createdAt: "2026-09-01",
     reviewDate: "2026-11-30",
   },
   {
     id: "SR-2026-003",
-    clientId: "BUD-0031",
+    residentId: "BUD-0031",
     type: "Companionship visit",
     goal: "Companionship and presence during the end-of-life period",
     frequency: "WEEKLY",
     preferredTime: "AFTERNOON",
     riskLevel: "STANDARD",
     status: "COMPLETED",
-    volunteerRef: "V-ID-0012",
+    volunteerRef: "Claire Morgan",
     createdAt: "2026-08-20",
     reviewDate: "2026-10-01",
   },
@@ -186,13 +196,13 @@ export const supportRequestsFixture: SupportRequest[] = [
 export const concernsFixture: Concern[] = [
   {
     id: "SC-2026-001",
-    clientId: "BUD-0033",
+    residentId: "BUD-0033",
     category: "Capacity concern",
     severity: "HIGH",
     description:
       "Volunteer reported the resident did not initially recognise them during the visit on 18 October. The resident later settled and engaged normally. Coordinator review requested.",
     status: "ROUTED",
-    routedTo: "Volunteer Coordinator and Newham Adult Social Care",
+    routedTo: "Elena Rodriguez (Volunteer Coordinator) and LB Bromley Adult Social Care",
     raisedAt: "2026-10-18T16:20:00+01:00",
     raisedBy: "Sarah M.",
     timeline: [
@@ -206,7 +216,7 @@ export const concernsFixture: Concern[] = [
   },
   {
     id: "SC-2026-000",
-    clientId: "BUD-0018",
+    residentId: "BUD-0018",
     category: "Self-neglect",
     severity: "MEDIUM",
     description:
@@ -226,32 +236,32 @@ export const concernsFixture: Concern[] = [
 export const threadsFixture: Thread[] = [
   {
     id: "T-003",
-    subject: "Welfare check for BUD-0033",
-    participant: "Volunteer Coordinator",
-    clientRef: "BUD-0033",
+    subject: "Welfare check for Joan Whitfield",
+    participant: "Elena Rodriguez · Volunteer Coordinator",
+    residentRef: "BUD-0033",
     unread: 1,
     messages: [
       {
         id: "m1",
         from: "PROVIDER",
         author: "Sarah M.",
-        body: "BUD-0033: the volunteer flagged that the resident did not recognise them on 18 Oct. Could you arrange an additional welfare check visit this week?",
+        body: "BUD-0033: the volunteer flagged that the resident did not recognise them on 18 Oct 2026. Could you arrange an additional welfare check visit this week?",
         sentAt: "2026-10-18T16:30:00+01:00",
       },
       {
         id: "m2",
         from: "COORDINATOR",
-        author: "VC-0007",
-        body: "Acknowledged. I've added a welfare check for BUD-0033 on Wed 22 Oct with V-ID-0023.",
+        author: "Elena Rodriguez",
+        body: "Acknowledged. I've added a welfare check for Joan Whitfield on Wed 22 Oct 2026 with Tom Fletcher.",
         sentAt: "2026-10-18T17:15:00+01:00",
       },
     ],
   },
   {
     id: "T-002",
-    subject: "More frequent visits for BUD-0031",
-    participant: "Volunteer Coordinator",
-    clientRef: "BUD-0031",
+    subject: "More frequent visits for Edith Clarke",
+    participant: "Elena Rodriguez · Volunteer Coordinator",
+    residentRef: "BUD-0031",
     unread: 0,
     messages: [
       {
@@ -264,8 +274,8 @@ export const threadsFixture: Thread[] = [
       {
         id: "m4",
         from: "COORDINATOR",
-        author: "VC-0007",
-        body: "Understood. Visits matched for Tue 14 and Thu 16 Oct with V-ID-0012.",
+        author: "Elena Rodriguez",
+        body: "Understood. Visits matched for Tue 14 Oct 2026 and Thu 16 Oct 2026 with Claire Morgan.",
         sentAt: "2026-10-14T10:30:00+01:00",
       },
     ],
@@ -273,15 +283,15 @@ export const threadsFixture: Thread[] = [
   {
     id: "T-001",
     subject: "October programme update",
-    participant: "Volunteer Coordinator",
-    clientRef: null,
+    participant: "Elena Rodriguez · Volunteer Coordinator",
+    residentRef: null,
     unread: 0,
     messages: [
       {
         id: "m5",
         from: "COORDINATOR",
-        author: "VC-0007",
-        body: "Three new council assignments are coming your way this week. Volunteer availability in E12 is good if you need extra visits.",
+        author: "Elena Rodriguez",
+        body: "Three new council assignments are coming your way this week. Volunteer availability in Beckenham is good if you need extra visits.",
         sentAt: "2026-10-13T08:45:00+01:00",
       },
     ],
@@ -310,9 +320,9 @@ export const outcomesFixture: OutcomesSummary = {
     { type: "Telephone check-in", hours: 5 },
     { type: "Digital help", hours: 4 },
   ],
-  clients: [
+  residents: [
     {
-      clientId: "BUD-0009",
+      residentId: "BUD-0009",
       wellbeingStart: 2,
       wellbeingNow: 4,
       lonelinessStart: 5,
@@ -323,7 +333,7 @@ export const outcomesFixture: OutcomesSummary = {
       goalStatus: "PROGRESSING",
     },
     {
-      clientId: "BUD-0018",
+      residentId: "BUD-0018",
       wellbeingStart: 3,
       wellbeingNow: 5,
       lonelinessStart: 4,
@@ -334,7 +344,7 @@ export const outcomesFixture: OutcomesSummary = {
       goalStatus: "PROGRESSING",
     },
     {
-      clientId: "BUD-0031",
+      residentId: "BUD-0031",
       wellbeingStart: 3,
       wellbeingNow: 3,
       lonelinessStart: 4,
@@ -345,7 +355,7 @@ export const outcomesFixture: OutcomesSummary = {
       goalStatus: "STEADY",
     },
     {
-      clientId: "BUD-0033",
+      residentId: "BUD-0033",
       wellbeingStart: 4,
       wellbeingNow: 3,
       lonelinessStart: 3,
@@ -356,7 +366,7 @@ export const outcomesFixture: OutcomesSummary = {
       goalStatus: "NEEDS_REVIEW",
     },
     {
-      clientId: "BUD-0062",
+      residentId: "BUD-0062",
       wellbeingStart: 2,
       wellbeingNow: 4,
       lonelinessStart: 5,
@@ -367,7 +377,7 @@ export const outcomesFixture: OutcomesSummary = {
       goalStatus: "PROGRESSING",
     },
     {
-      clientId: "BUD-0044",
+      residentId: "BUD-0044",
       wellbeingStart: null,
       wellbeingNow: null,
       lonelinessStart: null,
@@ -435,7 +445,7 @@ export const usersFixture: ProviderUser[] = [
   {
     id: "usr_0001",
     displayName: "Sarah M.",
-    email: "sarah.m@rivergarden.example",
+    email: "sarah.m@bromleycare.example",
     role: "PROVIDER_ADMINISTRATOR",
     status: "ACTIVE",
     lastActiveAt: "2026-10-19T08:45:00+01:00",
@@ -443,7 +453,7 @@ export const usersFixture: ProviderUser[] = [
   {
     id: "usr_0002",
     displayName: "James K.",
-    email: "james.k@rivergarden.example",
+    email: "james.k@bromleycare.example",
     role: "PROVIDER_COORDINATOR",
     status: "ACTIVE",
     lastActiveAt: "2026-10-19T07:30:00+01:00",
@@ -451,7 +461,7 @@ export const usersFixture: ProviderUser[] = [
   {
     id: "usr_0003",
     displayName: "Priya R.",
-    email: "priya.r@rivergarden.example",
+    email: "priya.r@bromleycare.example",
     role: "PROVIDER_PRACTITIONER",
     status: "ACTIVE",
     lastActiveAt: "2026-10-18T15:10:00+01:00",
@@ -459,7 +469,7 @@ export const usersFixture: ProviderUser[] = [
   {
     id: "usr_0004",
     displayName: "Tom B.",
-    email: "tom.b@rivergarden.example",
+    email: "tom.b@bromleycare.example",
     role: "PROVIDER_REPORTING_USER",
     status: "INVITED",
     lastActiveAt: null,
@@ -467,13 +477,13 @@ export const usersFixture: ProviderUser[] = [
 ]
 
 export const organisationFixture: Organisation = {
-  name: "River Garden Care",
-  providerRef: "PRV-NWH-0021",
-  programme: "Newham Buddii programme",
-  council: "London Borough of Newham",
-  serviceArea: ["E6", "E7", "E12", "E13", "E15", "E16"],
+  name: "Bromley Care Services",
+  providerRef: "CP-8841",
+  programme: "LB Bromley Buddii programme",
+  council: "London Borough of Bromley",
+  serviceArea: ["Bromley Central", "Orpington", "Beckenham", "Chislehurst", "West Wickham"],
   primaryContact: "Sarah M. (Provider Administrator)",
-  dataProtectionContact: "dpo@rivergarden.example",
+  dataProtectionContact: "dpo@bromleycare.example",
 }
 
 export const notificationsFixture: NotificationSettings = {
@@ -490,7 +500,7 @@ export const inboxFixture: Notification[] = [
     id: "n-5",
     kind: "OBSERVATION",
     title: "Observation needs your response",
-    body: "V-ID-0023 flagged a visit with BUD-0033.",
+    body: "Tom Fletcher flagged a visit with Joan Whitfield.",
     href: "/volunteer-activity?filter=needs_response",
     createdAt: "2026-10-18T12:10:00+01:00",
     read: false,
@@ -508,7 +518,7 @@ export const inboxFixture: Notification[] = [
     id: "n-3",
     kind: "MESSAGE",
     title: "Message from the Volunteer Coordinator",
-    body: "Welfare check added for BUD-0033 on Wed 22 Oct.",
+    body: "Welfare check added for Joan Whitfield on Wed 22 Oct 2026.",
     href: "/messages?thread=T-003",
     createdAt: "2026-10-18T17:15:00+01:00",
     read: false,
@@ -517,7 +527,7 @@ export const inboxFixture: Notification[] = [
     id: "n-2",
     kind: "REQUEST",
     title: "Support request matched",
-    body: "SR-2026-005 is now active with V-ID-0023.",
+    body: "SR-2026-005 is now active with Tom Fletcher.",
     href: "/support-requests?status=ACTIVE",
     createdAt: "2026-10-15T14:30:00+01:00",
     read: true,

@@ -10,6 +10,11 @@ import path from "node:path"
 import { z } from "zod"
 
 import {
+  actionListSchema,
+  actionReplyInputSchema,
+  actionSchema,
+} from "@/features/action-centre/schemas"
+import {
   activityListSchema,
   activityRecordSchema,
   providerResponseInputSchema,
@@ -21,13 +26,28 @@ import {
   declineAssignmentInputSchema,
 } from "@/features/assignments/schemas"
 import { loginSchema } from "@/features/auth/schemas"
-import { clientDetailSchema, clientSchema, programmeStatusSchema } from "@/features/clients/schemas"
 import { dashboardSummarySchema } from "@/features/home/schemas"
 import { messageSchema, newMessageSchema, threadSchema } from "@/features/messages/schemas"
 import { notificationSchema } from "@/features/notifications/schemas"
-import { outcomesSummarySchema } from "@/features/outcomes/schemas"
-import { newReferralSchema, referralListSchema, referralSchema } from "@/features/referrals/schemas"
+import { outcomesAssessmentsSchema, outcomesSummarySchema } from "@/features/outcomes/schemas"
+import {
+  referralListSchema,
+  referralSchema,
+  referralSubmissionSchema,
+} from "@/features/referrals/schemas"
 import { REPORT_PERIODS, reportSchema } from "@/features/reports/schemas"
+import {
+  assessmentRecordSchema,
+  newAssessmentSchema,
+  newDocumentSchema,
+  residentDocumentSchema,
+} from "@/features/resident-records/schemas"
+import {
+  residentDetailSchema,
+  residentDirectorySchema,
+  residentSchema,
+  programmeStatusSchema,
+} from "@/features/residents/schemas"
 import { concernSchema, newConcernSchema } from "@/features/safeguarding/schemas"
 import { type Capability } from "@/features/session/permissions"
 import { sessionSchema } from "@/features/session/schemas"
@@ -103,10 +123,10 @@ const endpoints: Endpoint[] = [
   // Clients
   {
     method: "get",
-    path: "/clients",
-    tag: "Clients",
+    path: "/residents",
+    tag: "Residents",
     summary: "Clients assigned to the organisation",
-    response: ok(paginatedSchema(clientSchema)),
+    response: ok(paginatedSchema(residentSchema)),
     query: [
       {
         name: "status",
@@ -122,7 +142,7 @@ const endpoints: Endpoint[] = [
       {
         name: "needs_response",
         schema: z.boolean(),
-        description: "Only clients with an observation awaiting the provider",
+        description: "Only residents with an observation awaiting the provider",
       },
       { name: "area", schema: z.string(), description: "Postcode district, e.g. E6" },
       {
@@ -135,11 +155,54 @@ const endpoints: Endpoint[] = [
   },
   {
     method: "get",
-    path: "/clients/{id}",
-    tag: "Clients",
-    summary: "Client detail",
-    response: ok(clientDetailSchema),
+    path: "/residents/directory",
+    tag: "Residents",
+    summary: "Name for every resident of this provider, closed records included",
+    response: ok(residentDirectorySchema),
+  },
+  {
+    method: "get",
+    path: "/residents/{id}",
+    tag: "Residents",
+    summary: "Resident detail",
+    response: ok(residentDetailSchema),
     errors: [404],
+  },
+  {
+    method: "get",
+    path: "/residents/{id}/assessments",
+    tag: "Residents",
+    summary: "Wellbeing assessments sent for this resident, newest first",
+    response: ok(z.array(assessmentRecordSchema)),
+    errors: [404],
+  },
+  {
+    method: "post",
+    path: "/residents/{id}/assessments",
+    tag: "Residents",
+    summary: "Send a baseline or review assessment to the council",
+    description:
+      "Created as RECEIVED. Only the council can mark it VERIFIED or ask for more information.",
+    body: newAssessmentSchema,
+    response: created(assessmentRecordSchema),
+    errors: [400, 403, 404],
+  },
+  {
+    method: "get",
+    path: "/residents/{id}/documents",
+    tag: "Residents",
+    summary: "Documents shared with the council for this resident",
+    response: ok(z.array(residentDocumentSchema)),
+    errors: [404],
+  },
+  {
+    method: "post",
+    path: "/residents/{id}/documents",
+    tag: "Residents",
+    summary: "Upload a document (a new version when the type already exists)",
+    body: newDocumentSchema,
+    response: created(residentDocumentSchema),
+    errors: [400, 403, 404],
   },
 
   // Assignments
@@ -192,8 +255,8 @@ const endpoints: Endpoint[] = [
     tag: "Referrals",
     summary: "Refer a resident to the council",
     description:
-      "The council reviews the referral and creates the client account. No name, address or clinical data is accepted.",
-    body: newReferralSchema,
+      "Wellbeing assessment form v0.2 plus supporting documents. The council reviews it and creates the resident record. Stop or pause answers (A1-A3, D2-D4) are rejected with 400.",
+    body: referralSubmissionSchema,
     response: created(referralSchema),
     errors: [400, 403],
     capability: "referrals.create",
@@ -212,7 +275,7 @@ const endpoints: Endpoint[] = [
         schema: z.enum(REQUEST_STATUSES),
         description: "Filter by pipeline status",
       },
-      { name: "client", schema: z.string(), description: "Buddii ID" },
+      { name: "resident", schema: z.string(), description: "Buddii ID" },
     ],
   },
   {
@@ -248,7 +311,7 @@ const endpoints: Endpoint[] = [
         schema: z.enum(["all", "today", "upcoming", "needs_response", "missed"]),
         description: "Defaults to all; 'today' uses the UK calendar day",
       },
-      { name: "client", schema: z.string(), description: "Buddii ID" },
+      { name: "resident", schema: z.string(), description: "Buddii ID" },
     ],
   },
   {
@@ -269,6 +332,33 @@ const endpoints: Endpoint[] = [
     tag: "Outcomes",
     summary: "Programme outcomes for the organisation",
     response: ok(outcomesSummarySchema),
+  },
+  {
+    method: "get",
+    path: "/action-centre/actions",
+    tag: "Action Centre",
+    summary: "Everything the provider must act on, from every source, high priority first",
+    description:
+      "Built from Council info requests (referrals, assessments, documents), pending assignments, review dates and volunteer observations. Each action deep-links to its source.",
+    response: ok(actionListSchema),
+  },
+  {
+    method: "post",
+    path: "/action-centre/actions/{id}/reply",
+    tag: "Action Centre",
+    summary: "Answer a Council info request with a message and files",
+    description:
+      "Files are added to the resident's documents as RECEIVED. Other actions close from their source (409).",
+    body: actionReplyInputSchema,
+    response: ok(actionSchema),
+    errors: [400, 404, 409],
+  },
+  {
+    method: "get",
+    path: "/outcomes/assessments",
+    tag: "Outcomes",
+    summary: "WEMWBS and UCLA scores per resident from Council-verified assessments",
+    response: ok(outcomesAssessmentsSchema),
   },
 
   // Messages

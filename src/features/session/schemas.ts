@@ -44,7 +44,7 @@ export const sessionSchema = z.object({
   organisation: z.object({
     id: z.string(),
     name: z.string(),
-    /** The council programme this provider participates in, e.g. "Newham". */
+    /** The council programme this provider participates in, e.g. "LB Bromley". */
     programme: z.string(),
   }),
   entitlements: z.array(entitlementCodeSchema),

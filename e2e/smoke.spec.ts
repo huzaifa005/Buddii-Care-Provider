@@ -3,15 +3,16 @@ import { expect, expectAccessible, test, waitForPage } from "./fixtures"
 const ROUTES: [path: string, heading: RegExp][] = [
   ["/", /good (morning|afternoon|evening)/i],
   ["/residents", /^residents$/i],
-  ["/residents/BUD-0033", /^BUD-0033$/],
+  ["/residents/BUD-0033", /^Joan Whitfield$/],
   ["/assignments", /new assignments/i],
   ["/support-requests", /support requests/i],
   ["/volunteer-activity", /volunteer activity/i],
-  ["/outcomes", /outcomes & impact/i],
+  ["/outcomes", /^outcomes$/i],
   ["/messages", /messages/i],
   ["/safeguarding", /safeguarding/i],
   ["/reports", /reports/i],
-  ["/settings", /users & settings/i],
+  ["/settings", /^settings$/i],
+  ["/action-centre", /^action centre$/i],
 ]
 
 for (const [path, heading] of ROUTES) {

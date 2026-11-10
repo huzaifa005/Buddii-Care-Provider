@@ -14,7 +14,7 @@ describe("role permissions", () => {
     expect(managers).toEqual(["PROVIDER_ADMINISTRATOR"])
   })
 
-  it("lets every role that works with clients raise a safeguarding concern", () => {
+  it("lets every role that works with residents raise a safeguarding concern", () => {
     for (const role of PROVIDER_ROLES.filter((r) => r !== "PROVIDER_REPORTING_USER")) {
       expect(can(role, "safeguarding.report")).toBe(true)
     }

@@ -12,7 +12,7 @@ describe("EmergencyButton", () => {
     await user.click(screen.getByRole("button", { name: "Emergency contacts" }))
     const dialog = await screen.findByRole("dialog", { name: /emergency contacts/i })
 
-    for (const number of ["999", "020 8430 2000", "111"]) {
+    for (const number of ["999", "+44 20 7946 0123", "111"]) {
       expect(within(dialog).getByText(number)).toBeInTheDocument()
     }
     expect(

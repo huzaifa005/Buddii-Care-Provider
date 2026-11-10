@@ -1,6 +1,6 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts"
 
 import { Panel, PanelHeader } from "@/components/shared/panel"
 import {
@@ -9,7 +9,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { formatDayMonth, formatNumber } from "@/lib/format"
+import { formatChartTick, formatDate, formatNumber } from "@/lib/format"
 
 import { type DashboardSummary } from "../schemas"
 
@@ -47,29 +47,17 @@ export function VolunteerHoursChart({ data }: { data: DashboardSummary["voluntee
             tickLine={false}
             axisLine={false}
             tickMargin={10}
-            tickFormatter={formatDayMonth}
+            tickFormatter={formatChartTick}
           />
           <YAxis tickLine={false} axisLine={false} width={44} />
           <ChartTooltip
             cursor={{ fill: "var(--muted)" }}
             content={
               <ChartTooltipContent
-                labelFormatter={(value) => `Week of ${formatDayMonth(String(value))}`}
+                labelFormatter={(value) => `Week of ${formatDate(String(value))}`}
                 hideIndicator
               />
             }
-          />
-          <ReferenceLine
-            y={data.targetPerWeek}
-            stroke="var(--muted-foreground)"
-            strokeDasharray="4 4"
-            strokeOpacity={0.6}
-            label={{
-              value: `Target ${data.targetPerWeek} hrs`,
-              position: "insideTopLeft",
-              fill: "var(--muted-foreground)",
-              fontSize: 11,
-            }}
           />
           <Bar dataKey="hours" radius={[6, 6, 0, 0]} maxBarSize={40}>
             {weeks.map((week, i) => (

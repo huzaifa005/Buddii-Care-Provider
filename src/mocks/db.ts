@@ -1,5 +1,6 @@
+import { type Action } from "@/features/action-centre/schemas"
+
 import { activityFixture } from "./fixtures/activity"
-import { clientsFixture } from "./fixtures/clients"
 import { dashboardSummaryFixture } from "./fixtures/home"
 import {
   assignmentsFixture,
@@ -14,6 +15,8 @@ import {
   usersFixture,
 } from "./fixtures/programme"
 import { referralsFixture } from "./fixtures/referrals"
+import { assessmentsFixture, documentsFixture } from "./fixtures/resident-records"
+import { residentsFixture } from "./fixtures/residents"
 import { sessionFixture } from "./fixtures/session"
 
 /**
@@ -24,10 +27,12 @@ const seed = () =>
   structuredClone({
     session: sessionFixture,
     dashboard: dashboardSummaryFixture,
-    clients: clientsFixture,
+    residents: residentsFixture,
     activity: activityFixture,
     assignments: assignmentsFixture,
     referrals: referralsFixture,
+    assessments: assessmentsFixture,
+    documents: documentsFixture,
     supportRequests: supportRequestsFixture,
     concerns: concernsFixture,
     threads: threadsFixture,
@@ -37,6 +42,8 @@ const seed = () =>
     organisation: organisationFixture,
     notifications: notificationsFixture,
     inbox: inboxFixture,
+    /** Replies sent from the Action Centre, by action id. */
+    actionReplies: {} as Record<string, NonNullable<Action["reply"]>>,
   })
 
 export const db = seed()

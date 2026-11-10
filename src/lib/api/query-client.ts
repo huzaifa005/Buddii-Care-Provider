@@ -34,7 +34,7 @@ export function makeQueryClient() {
 
 let browserQueryClient: QueryClient | undefined
 
-/** One client per request on the server, one shared client in the browser. */
+/** One query client per request on the server, one shared client in the browser. */
 export function getQueryClient() {
   if (isServer) return makeQueryClient()
   browserQueryClient ??= makeQueryClient()

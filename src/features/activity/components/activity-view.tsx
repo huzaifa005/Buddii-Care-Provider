@@ -51,24 +51,29 @@ export function ActivityView() {
               value={stats.completedThisMonth}
               icon={CheckCircle2}
               caption="this month"
+              href="/volunteer-activity"
             />
             <StatCard
               label="Volunteer hours"
               value={stats.hoursThisMonth}
               icon={KpiIcons.hours}
               caption="this month"
+              href="/reports"
             />
             <StatCard
               label="Upcoming visits"
               value={stats.upcomingSevenDays}
               icon={KpiIcons.visits}
               caption="scheduled from today"
+              href="/volunteer-activity?filter=upcoming"
             />
             <StatCard
               label="Awaiting your response"
               value={stats.awaitingResponse}
               icon={KpiIcons.attention}
               caption="observations"
+              href="/volunteer-activity?filter=needs_response"
+              attention={stats.awaitingResponse > 0 ? "Action required" : undefined}
             />
           </>
         ) : (

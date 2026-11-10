@@ -2,7 +2,7 @@ import { CheckCircle2, MessageSquareWarning } from "lucide-react"
 
 import { StatusDot } from "@/components/shared/status-dot"
 import { Button } from "@/components/ui/button"
-import { ClientLink } from "@/features/clients/components/client-link"
+import { ResidentLink } from "@/features/residents/components/resident-link"
 import { formatDayMonth, formatTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
@@ -23,8 +23,8 @@ export function ActivityItem({
 
   return (
     <article className={cn("flex gap-4 px-6 py-5", record.needsResponse && "bg-warning-soft/40")}>
-      <div className="w-14 shrink-0 text-center">
-        <p className="text-sm font-semibold text-heading tabular-nums">
+      <div className="w-24 shrink-0">
+        <p className="text-sm font-semibold whitespace-nowrap text-heading tabular-nums">
           {formatDayMonth(record.scheduledAt)}
         </p>
         <p className="text-xs text-muted-foreground tabular-nums">
@@ -37,8 +37,8 @@ export function ActivityItem({
           <p className="text-sm font-medium text-heading">
             {showClient && (
               <>
-                <ClientLink
-                  clientId={record.clientId}
+                <ResidentLink
+                  residentId={record.residentId}
                   tab="activity"
                   className="tabular-nums hover:underline"
                 />
@@ -52,7 +52,7 @@ export function ActivityItem({
         <p className="text-xs text-muted-foreground">
           {record.volunteerRef}
           {record.durationMinutes && ` · ${record.durationMinutes} min`}
-          {record.wellbeingScore !== null && ` · wellbeing ${record.wellbeingScore}/5`}
+          {record.wellbeingScore !== null && ` · visit check ${record.wellbeingScore}/5`}
         </p>
 
         {record.observation && (

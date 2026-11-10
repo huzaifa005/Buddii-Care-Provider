@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { buddiiIdSchema, outcomeScoreSchema } from "@/features/clients/schemas"
+import { buddiiIdSchema, outcomeScoreSchema } from "@/features/residents/schemas"
 
 export const activityStatusSchema = z.enum(["COMPLETED", "IN_PROGRESS", "SCHEDULED", "MISSED"])
 export type ActivityStatus = z.infer<typeof activityStatusSchema>
@@ -8,7 +8,7 @@ export type ActivityStatus = z.infer<typeof activityStatusSchema>
 /** A volunteer visit. Volunteer-recorded content only; no clinical or regulated visit data. */
 export const activityRecordSchema = z.object({
   id: z.string(),
-  clientId: buddiiIdSchema,
+  residentId: buddiiIdSchema,
   type: z.string(),
   volunteerRef: z.string(),
   scheduledAt: z.iso.datetime({ offset: true }),

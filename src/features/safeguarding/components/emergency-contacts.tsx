@@ -18,9 +18,10 @@ import { useCan } from "@/features/session/api"
 const CONTACTS = [
   { label: "Emergency services", detail: "Police, ambulance, fire", number: "999" },
   {
-    label: "Newham adult safeguarding",
+    label: "LB Bromley adult safeguarding",
+    // Demo number from the Ofcom drama range; replace with the Council's number before launch.
     detail: "24/7, including out of hours",
-    number: "020 8430 2000",
+    number: "+44 20 7946 0123",
   },
   { label: "NHS non-emergency", detail: "Medical advice", number: "111" },
 ]

@@ -18,6 +18,7 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
+import { useResidentName } from "@/features/residents/api"
 import { ApiError } from "@/lib/api/client"
 
 import { useRecordResponse } from "../api"
@@ -60,6 +61,8 @@ export function RecordResponseDialog({
     defaultValues: { response: "", followUp: "NONE" },
   })
 
+  const residentName = useResidentName(record?.residentId)
+
   const close = () => {
     onOpenChange(false)
     form.reset()
@@ -70,11 +73,11 @@ export function RecordResponseDialog({
     try {
       await mutation.mutateAsync({ id: record.id, input })
       toast.success("Response recorded", {
-        description: `Shared with the coordinator for ${record.clientId}.`,
+        description: `Shared with the coordinator for ${residentName}.`,
       })
       close()
       if (input.followUp === "SAFEGUARDING") {
-        router.push(`/safeguarding?report=true&for=${record.clientId}`)
+        router.push(`/safeguarding?report=true&for=${record.residentId}`)
       }
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : "Could not save your response")
@@ -87,7 +90,7 @@ export function RecordResponseDialog({
         <DialogHeader>
           <DialogTitle>Respond to observation</DialogTitle>
           <DialogDescription>
-            {record?.clientId} · {record?.type} · {record?.volunteerRef}
+            {record?.residentId} · {record?.type} · {record?.volunteerRef}
           </DialogDescription>
         </DialogHeader>
 

@@ -34,11 +34,11 @@ export function PendingAssignments({ assignments }: { assignments: PendingAssign
           {assignments.map((a) => (
             <li key={a.id} className="rounded-card border p-4">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="text-sm font-medium text-heading tabular-nums">{a.id}</p>
+                <p className="text-sm font-medium text-heading">{a.residentName}</p>
                 <p className="text-[11px] text-muted-foreground">{receivedLabel(a.receivedAt)}</p>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Age {a.ageBand} · {a.postcodeDistrict} · Ref {a.councilRef}
+                Age {a.ageBand} · {a.area} · Ref {a.councilRef}
               </p>
               <ul className="mt-3 flex flex-wrap gap-1.5">
                 {a.goals.map((goal) => (

@@ -14,7 +14,7 @@ export const threadSchema = z.object({
   id: z.string(),
   subject: z.string(),
   participant: z.string(),
-  clientRef: z.string().nullable(),
+  residentRef: z.string().nullable(),
   unread: z.number().int(),
   messages: z.array(messageSchema),
 })

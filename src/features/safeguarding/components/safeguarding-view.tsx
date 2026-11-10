@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CheckCircle2, ShieldAlert, ShieldCheck, Siren } from "lucide-react"
-import { parseAsBoolean, parseAsString, useQueryState } from "nuqs"
+import { parseAsBoolean, parseAsString, parseAsStringLiteral, useQueryState } from "nuqs"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -32,7 +32,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
-import { ClientSelect } from "@/features/clients/components/client-select"
+import { ResidentLink } from "@/features/residents/components/resident-link"
+import { ResidentSelect } from "@/features/residents/components/resident-select"
 import { useCan } from "@/features/session/api"
 import { ApiError } from "@/lib/api/client"
 import { formatDayMonth, formatTime } from "@/lib/format"
@@ -55,13 +56,34 @@ const STATUS: Record<Concern["status"], { label: string; tone: StatusTone }> = {
   CLOSED: { label: "Closed", tone: "success" },
 }
 
+const CONCERN_VIEWS = ["all", "open", "review", "closed"] as const
+const CONCERN_VIEW_LABEL: Record<(typeof CONCERN_VIEWS)[number], string> = {
+  all: "",
+  open: "open",
+  review: "under review",
+  closed: "closed",
+}
+
 export function SafeguardingView() {
   const query = useConcerns()
   const [reporting, setReporting] = useQueryState("report", parseAsBoolean.withDefault(false))
-  const [clientParam, setClientParam] = useQueryState("for", parseAsString)
+  const [residentParam, setResidentParam] = useQueryState("for", parseAsString)
   const concerns = query.data ?? []
   const canReport = useCan("safeguarding.report")
   const open = concerns.filter((c) => c.status !== "CLOSED")
+  const [view, setView] = useQueryState(
+    "view",
+    parseAsStringLiteral(CONCERN_VIEWS).withDefault("all"),
+  )
+  const shown = concerns.filter((c) =>
+    view === "open"
+      ? c.status !== "CLOSED"
+      : view === "review"
+        ? c.status !== "CLOSED" && c.status !== "SUBMITTED"
+        : view === "closed"
+          ? c.status === "CLOSED"
+          : true,
+  )
 
   return (
     <div className="space-y-6">
@@ -85,17 +107,20 @@ export function SafeguardingView() {
               label="Open concerns"
               value={query.data ? open.length : "–"}
               icon={KpiIcons.concern}
+              href="/safeguarding?view=open"
             />
             <StatCard
               label="Under review"
               value={query.data ? open.filter((c) => c.status !== "SUBMITTED").length : "–"}
               icon={KpiIcons.review}
+              href="/safeguarding?view=review"
             />
             <StatCard
               label="Closed"
               value={query.data ? concerns.length - open.length : "–"}
               icon={KpiIcons.resolved}
               caption="this quarter"
+              href="/safeguarding?view=closed"
             />
           </div>
 
@@ -107,7 +132,17 @@ export function SafeguardingView() {
                 </Panel>
               ) : (
                 <div className="space-y-4">
-                  {data.map((c) => (
+                  {view !== "all" && (
+                    <div className="flex items-center justify-between gap-3 text-[13px] text-muted-foreground">
+                      <span>
+                        Showing {shown.length} {CONCERN_VIEW_LABEL[view]} of {data.length} concerns
+                      </span>
+                      <Button variant="ghost" size="sm" onClick={() => void setView(null)}>
+                        Show all
+                      </Button>
+                    </div>
+                  )}
+                  {shown.map((c) => (
                     <ConcernCard key={c.id} concern={c} />
                   ))}
                 </div>
@@ -132,10 +167,10 @@ export function SafeguardingView() {
 
       <ReportConcernDialog
         open={reporting && canReport}
-        defaultClientId={clientParam ?? undefined}
+        defaultClientId={residentParam ?? undefined}
         onOpenChange={(next) => {
           void setReporting(next ? true : null)
-          if (!next) void setClientParam(null)
+          if (!next) void setResidentParam(null)
         }}
       />
     </div>
@@ -150,7 +185,8 @@ function ConcernCard({ concern }: { concern: Concern }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-heading tabular-nums">
-            {concern.id} · {concern.clientId}
+            <ResidentLink residentId={concern.residentId} className="hover:underline" />
+            <span className="ml-2 text-xs font-medium text-muted-foreground">{concern.id}</span>
           </p>
           <p className="text-xs text-muted-foreground">
             {concern.category} · raised {formatDayMonth(concern.raisedAt)} by {concern.raisedBy}
@@ -193,7 +229,7 @@ function ReportConcernDialog({
   const form = useForm<NewConcern>({
     resolver: zodResolver(newConcernSchema),
     values: {
-      clientId: defaultClientId ?? "",
+      residentId: defaultClientId ?? "",
       severity: "HIGH",
       category: "Physical welfare",
       description: "",
@@ -231,12 +267,12 @@ function ReportConcernDialog({
           <div className="grid gap-5 sm:grid-cols-2">
             <Controller
               control={form.control}
-              name="clientId"
+              name="residentId"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="rc-client">Resident</FieldLabel>
-                  <ClientSelect
-                    id="rc-client"
+                  <FieldLabel htmlFor="rc-resident">Resident</FieldLabel>
+                  <ResidentSelect
+                    id="rc-resident"
                     value={field.value}
                     onChange={field.onChange}
                     invalid={fieldState.invalid}

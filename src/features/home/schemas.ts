@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { buddiiIdSchema, outcomeScoreSchema } from "@/features/clients/schemas"
+import { buddiiIdSchema, outcomeScoreSchema } from "@/features/residents/schemas"
 
 export const actionPrioritySchema = z.enum(["HIGH", "MEDIUM", "LOW"])
 export type ActionPriority = z.infer<typeof actionPrioritySchema>
@@ -13,7 +13,7 @@ export const actionItemSchema = z.object({
   detail: z.string(),
   relatedTo: z.object({
     ref: z.string(),
-    kind: z.enum(["CLIENT", "ASSIGNMENT", "SUPPORT_REQUEST", "CONCERN", "THREAD"]),
+    kind: z.enum(["RESIDENT", "ASSIGNMENT", "SUPPORT_REQUEST", "CONCERN", "THREAD"]),
   }),
   due: z.iso.date().nullable(),
   cta: z.enum(["REVIEW", "RESPOND", "CONFIRM", "REPLY", "OPEN"]),
@@ -26,7 +26,7 @@ export type VisitStatus = z.infer<typeof visitStatusSchema>
 
 export const visitSchema = z.object({
   id: z.string(),
-  clientId: buddiiIdSchema,
+  residentId: buddiiIdSchema,
   type: z.string(),
   postcodeDistrict: z.string(),
   volunteerRef: z.string(),
@@ -41,6 +41,8 @@ export type Visit = z.infer<typeof visitSchema>
 export const pendingAssignmentSchema = z.object({
   id: z.string(),
   councilRef: z.string(),
+  residentName: z.string(),
+  area: z.string(),
   ageBand: z.string(),
   postcodeDistrict: z.string(),
   goals: z.array(z.string()),
@@ -57,7 +59,7 @@ const trendMetric = z.object({
 
 export const dashboardSummarySchema = z.object({
   metrics: z.object({
-    activeClients: trendMetric,
+    activeResidents: trendMetric,
     volunteerHoursThisMonth: trendMetric,
     visitsCompletedThisMonth: trendMetric.extend({ scheduled: z.number().int() }),
     averageWellbeing: trendMetric,
@@ -66,7 +68,6 @@ export const dashboardSummarySchema = z.object({
   todayVisits: z.array(visitSchema),
   pendingAssignments: z.array(pendingAssignmentSchema),
   volunteerHours: z.object({
-    targetPerWeek: z.number(),
     weeks: z.array(z.object({ weekStart: z.iso.date(), hours: z.number() })),
   }),
 })

@@ -3,7 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInCalendarDays, parseISO } from "date-fns"
 import { Check, Inbox, Info, MapPin, Send, X } from "lucide-react"
-import { parseAsBoolean, parseAsStringLiteral, useQueryState } from "nuqs"
+import Link from "next/link"
+import { parseAsStringLiteral, useQueryState } from "nuqs"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -34,7 +35,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
-import { ReferralSheet } from "@/features/referrals/components/referral-sheet"
 import { ReferralsPanel } from "@/features/referrals/components/referrals-panel"
 import { useCan } from "@/features/session/api"
 import { ApiError } from "@/lib/api/client"
@@ -67,18 +67,19 @@ export function AssignmentsView() {
   const [declining, setDeclining] = useState<Assignment | null>(null)
   const canRespond = useCan("assignments.respond")
   const canRefer = useCan("referrals.create")
-  const [referring, setReferring] = useQueryState("refer", parseAsBoolean.withDefault(false))
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="New Assignments"
+        title="New assignments"
         description="Residents the council has assigned to your organisation, and residents you refer to the council"
         actions={
           canRefer && (
-            <Button className="h-10 px-4" onClick={() => setReferring(true)}>
-              <Send aria-hidden />
-              Refer a resident
+            <Button asChild className="h-10 px-4">
+              <Link href="/residents/refer">
+                <Send aria-hidden />
+                Refer a resident
+              </Link>
             </Button>
           )
         }
@@ -128,10 +129,11 @@ export function AssignmentsView() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-lg font-semibold text-heading tabular-nums">{a.id}</p>
+                      <p className="text-lg font-semibold text-heading">{a.residentName}</p>
                       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                         <MapPin className="size-3.5" aria-hidden />
-                        Age {a.ageBand} · {a.postcodeDistrict} · Council ref {a.councilRef}
+                        Age {a.ageBand} · {a.area} ({a.postcodeDistrict}) · Council ref{" "}
+                        {a.councilRef} · {a.id}
                       </p>
                     </div>
                     {a.status === "PENDING" ? (
@@ -192,10 +194,6 @@ export function AssignmentsView() {
       <ReferralsPanel />
 
       <ConfirmDialog assignment={confirming} onClose={() => setConfirming(null)} />
-      <ReferralSheet
-        open={referring && canRefer}
-        onOpenChange={(next) => void setReferring(next ? true : null)}
-      />
       <DeclineDialog assignment={declining} onClose={() => setDeclining(null)} />
     </div>
   )
@@ -234,7 +232,8 @@ function ConfirmDialog({
         <DialogHeader>
           <DialogTitle>Confirm programme participation</DialogTitle>
           <DialogDescription>
-            {assignment?.id} · Age {assignment?.ageBand} · {assignment?.postcodeDistrict}
+            {assignment?.residentName} · Age {assignment?.ageBand} · {assignment?.area} ·{" "}
+            {assignment?.id}
           </DialogDescription>
         </DialogHeader>
         <form id="confirm-assignment" onSubmit={onSubmit} className="space-y-5">
