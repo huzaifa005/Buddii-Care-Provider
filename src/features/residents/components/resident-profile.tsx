@@ -16,6 +16,7 @@ import { parseAsStringLiteral, useQueryState } from "nuqs"
 import { useState } from "react"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
+import { OverflowTabsList } from "@/components/shared/overflow-tabs-list"
 import { Panel } from "@/components/shared/panel"
 import { EmptyState, QueryBoundary } from "@/components/shared/query-boundary"
 import { StatusDot } from "@/components/shared/status-dot"
@@ -24,49 +25,63 @@ import { Button } from "@/components/ui/button"
 import {
   type ChartConfig,
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { useActivity } from "@/features/activity/api"
 import { ActivityItem } from "@/features/activity/components/activity-item"
 import { RecordResponseDialog } from "@/features/activity/components/record-response-dialog"
 import { type ActivityRecord } from "@/features/activity/schemas"
+import { ChangePill, MEASURES } from "@/features/outcomes/components/outcome-measures"
+import {
+  ResidentOutcomeSummary,
+  useResidentOutcome,
+} from "@/features/outcomes/components/resident-outcome-summary"
+import { AssessmentsTab } from "@/features/resident-records/components/assessments-tab"
+import { DocumentsTab } from "@/features/resident-records/components/documents-tab"
 import { useCan } from "@/features/session/api"
 import { useSupportRequests } from "@/features/support-requests/api"
 import { REQUEST_STATUS } from "@/features/support-requests/presentation"
 import { formatDate, formatDayMonth, formatTime } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
-import { useClient } from "../api"
+import { useResident, useResidentName } from "../api"
 import {
   CONSENT_STATUS,
+  initials,
   isLocked,
   lastChange,
   latest,
   MATCH_STATUS,
   PROGRAMME_STATUS,
 } from "../presentation"
-import { CLIENT_TABS, type ClientTab } from "../resident-tabs"
-import { type ClientDetail } from "../schemas"
+import { RESIDENT_TABS, type ResidentTab } from "../resident-tabs"
+import { JourneyStepper } from "./journey-stepper"
+import { residentHref } from "./resident-link"
+import { type ResidentDetail } from "../schemas"
 
-const TAB_LABELS: [ClientTab, string][] = [
+const TAB_LABELS: [ResidentTab, string][] = [
   ["overview", "Overview"],
   ["plan", "Support plan"],
   ["activity", "Volunteer activity"],
   ["outcomes", "Outcomes"],
+  ["assessments", "Assessments"],
+  ["documents", "Documents"],
   ["observations", "Observations"],
   ["consent", "Consent & access"],
   ["history", "Activity history"],
 ]
 
+/** Council design system: at most 8 tabs in the row (7 + More); fewer when the screen is narrow. */
+const VISIBLE_TABS = 7
+
 /** Full-page resident profile, following the Council Dashboard resident profile. */
 export function ResidentProfile() {
   const { residentId } = useParams<{ residentId: string }>()
-  const query = useClient(residentId)
+  const query = useResident(residentId)
+  const name = useResidentName(residentId)
 
   return (
     <div className="space-y-6">
@@ -80,44 +95,44 @@ export function ResidentProfile() {
           <li aria-hidden>
             <ChevronRight className="size-3.5" />
           </li>
-          <li className="text-heading tabular-nums" aria-current="page">
-            {residentId}
+          <li className="text-heading" aria-current="page">
+            {name}
           </li>
         </ol>
       </nav>
       <QueryBoundary query={query} fallback={<ProfileSkeleton />} errorTitle="Resident not found">
-        {(client) => <ResidentDetail client={client} />}
+        {(resident) => <ResidentDetail resident={resident} />}
       </QueryBoundary>
     </div>
   )
 }
 
-function ResidentDetail({ client }: { client: ClientDetail }) {
-  const [tabParam, setTabParam] = useQueryState("tab", parseAsStringLiteral(CLIENT_TABS))
+function ResidentDetail({ resident }: { resident: ResidentDetail }) {
+  const [tabParam, setTabParam] = useQueryState("tab", parseAsStringLiteral(RESIDENT_TABS))
   const tab = tabParam ?? "overview"
-  const setTab = (next: ClientTab) => void setTabParam(next === "overview" ? null : next)
+  const setTab = (next: ResidentTab) => void setTabParam(next === "overview" ? null : next)
   const [responding, setResponding] = useState<ActivityRecord | null>(null)
-  const locked = isLocked(client.programmeStatus)
+  const locked = isLocked(resident.programmeStatus)
   const canReport = useCan("safeguarding.report") && !locked
   const canRequest = useCan("requests.create") && !locked
   const canRespond = useCan("activity.respond") && !locked
-  const status = PROGRAMME_STATUS[client.programmeStatus]
-  const consent = CONSENT_STATUS[client.consentStatus]
-  const volunteer = client.nextActivity?.volunteerRef ?? client.lastActivity?.volunteerRef
-  const alerts = openAlerts(client)
+  const status = PROGRAMME_STATUS[resident.programmeStatus]
+  const consent = CONSENT_STATUS[resident.consentStatus]
+  const volunteer = resident.nextActivity?.volunteerRef ?? resident.lastActivity?.volunteerRef
+  const alerts = openAlerts(resident)
 
   return (
     <>
       <Panel className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground tabular-nums">
-              {client.id.slice(-2)}
+            <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
+              {initials(resident.name)}
             </span>
             <div className="min-w-0 space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="mr-1 text-[26px] leading-9 font-semibold tracking-tight text-heading tabular-nums">
-                  {client.id}
+                <h1 className="mr-1 text-[26px] leading-9 font-semibold tracking-tight text-heading">
+                  {resident.name}
                 </h1>
                 <StatusPill tone={status.tone} caps>
                   {status.label}
@@ -129,9 +144,9 @@ function ResidentDetail({ client }: { client: ClientDetail }) {
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
-                {client.ageBand} years · {client.postcodeDistrict} · Coordinator{" "}
-                {client.coordinatorRef} · Buddii ID{" "}
-                <span className="font-semibold text-foreground tabular-nums">{client.id}</span>
+                {resident.ageBand} years · {resident.area} ({resident.postcodeDistrict}) ·
+                Coordinator {resident.coordinatorRef} · Buddii ID{" "}
+                <span className="font-semibold text-foreground tabular-nums">{resident.id}</span>
               </p>
             </div>
           </div>
@@ -139,7 +154,7 @@ function ResidentDetail({ client }: { client: ClientDetail }) {
             <div className="flex shrink-0 flex-wrap gap-2">
               {canReport && (
                 <Button asChild variant="outline" className="h-10 px-4">
-                  <Link href={`/safeguarding?report=true&for=${client.id}`}>
+                  <Link href={`/safeguarding?report=true&for=${resident.id}`}>
                     <ShieldAlert aria-hidden />
                     Report concern
                   </Link>
@@ -147,7 +162,7 @@ function ResidentDetail({ client }: { client: ClientDetail }) {
               )}
               {canRequest && (
                 <Button asChild className="h-10 px-4">
-                  <Link href={`/support-requests?new=true&for=${client.id}`}>
+                  <Link href={`/support-requests?new=true&for=${resident.id}`}>
                     <Plus aria-hidden />
                     Support request
                   </Link>
@@ -157,22 +172,24 @@ function ResidentDetail({ client }: { client: ClientDetail }) {
           )}
         </div>
 
+        <JourneyStepper journey={resident.journey} />
+
         <dl className="grid grid-cols-2 gap-3 rounded-card bg-muted/70 p-3 md:grid-cols-4">
-          <SummaryTile label="Coordinator" value={client.coordinatorRef} />
+          <SummaryTile label="Coordinator" value={resident.coordinatorRef} />
           <SummaryTile label="Key volunteer" value={volunteer ?? "Unassigned"} />
           <SummaryTile label="Consent">
-            <StatusPill tone={consent.tone}>{CONSENT_SHORT[client.consentStatus]}</StatusPill>
+            <StatusPill tone={consent.tone}>{CONSENT_SHORT[resident.consentStatus]}</StatusPill>
           </SummaryTile>
           <SummaryTile
             label="Next visit"
-            value={client.nextActivity ? formatDayMonth(client.nextActivity.date) : "None"}
+            value={resident.nextActivity ? formatDayMonth(resident.nextActivity.date) : "None"}
           />
-          <ScoreTile label="Wellbeing" series={client.wellbeingHistory} goodWhen="up" />
-          <ScoreTile label="Loneliness" series={client.lonelinessHistory} goodWhen="down" />
-          <ScoreTile label="Confidence" series={client.confidenceHistory} goodWhen="up" />
+          <MeasureTile residentId={resident.id} measure="wemwbs" label="Wellbeing (WEMWBS)" />
+          <MeasureTile residentId={resident.id} measure="ucla" label="Loneliness (UCLA)" />
+          <ScoreTile label="Visit check" series={resident.visitCheckHistory} />
           <SummaryTile
             label="Last visit"
-            value={client.lastActivity ? formatDayMonth(client.lastActivity.date) : "Never"}
+            value={resident.lastActivity ? formatDayMonth(resident.lastActivity.date) : "Never"}
           />
         </dl>
       </Panel>
@@ -182,12 +199,12 @@ function ResidentDetail({ client }: { client: ClientDetail }) {
           <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
           <span>
             <span className="font-semibold">This record is closed and read-only.</span> Volunteer
-            activity and alerts for {client.id} have stopped. Contact the council with any
+            activity and alerts for {resident.name} have stopped. Contact the council with any
             questions.
           </span>
         </p>
       ) : (
-        client.needsProviderResponse && (
+        resident.needsProviderResponse && (
           <button
             type="button"
             onClick={() => setTab("observations")}
@@ -202,45 +219,48 @@ function ResidentDetail({ client }: { client: ClientDetail }) {
         )
       )}
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as ClientTab)} className="gap-6">
-        <div className="overflow-x-auto">
-          <TabsList className="h-auto w-max justify-start gap-1 bg-transparent p-0">
-            {TAB_LABELS.map(([value, label], i) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="h-9 flex-none rounded-lg px-3.5 text-[13px] text-muted-foreground hover:text-heading data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                {i + 1}. {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as ResidentTab)} className="gap-6">
+        <OverflowTabsList
+          items={TAB_LABELS}
+          value={tab}
+          onSelect={setTab}
+          max={VISIBLE_TABS}
+          numbered
+        />
 
         <TabsContent value="overview">
-          <OverviewTab client={client} />
+          <OverviewTab resident={resident} />
         </TabsContent>
         <TabsContent value="plan">
-          <SupportPlanTab client={client} />
+          <SupportPlanTab resident={resident} />
         </TabsContent>
         <TabsContent value="activity">
-          <ActivityTab clientId={client.id} onRespond={canRespond ? setResponding : undefined} />
+          <ActivityTab
+            residentId={resident.id}
+            onRespond={canRespond ? setResponding : undefined}
+          />
         </TabsContent>
         <TabsContent value="outcomes">
-          <OutcomesTab client={client} />
+          <OutcomesTab resident={resident} />
+        </TabsContent>
+        <TabsContent value="assessments">
+          <AssessmentsTab residentId={resident.id} locked={locked} />
+        </TabsContent>
+        <TabsContent value="documents">
+          <DocumentsTab residentId={resident.id} locked={locked} />
         </TabsContent>
         <TabsContent value="observations">
           <ActivityTab
-            clientId={client.id}
+            residentId={resident.id}
             onRespond={canRespond ? setResponding : undefined}
             observationsOnly
           />
         </TabsContent>
         <TabsContent value="consent">
-          <ConsentTab client={client} />
+          <ConsentTab resident={resident} />
         </TabsContent>
         <TabsContent value="history">
-          <HistoryTab client={client} />
+          <HistoryTab resident={resident} />
         </TabsContent>
       </Tabs>
 
@@ -299,18 +319,11 @@ function SummaryTile({
   )
 }
 
-function ScoreTile({
-  label,
-  series,
-  goodWhen,
-}: {
-  label: string
-  series: number[]
-  goodWhen: "up" | "down"
-}) {
+/** Latest volunteer visit check (1-5) and the change since the previous visit. */
+function ScoreTile({ label, series }: { label: string; series: number[] }) {
   const value = latest(series)
   const change = lastChange(series)
-  const improved = goodWhen === "up" ? change > 0 : change < 0
+  const improved = change > 0
   return (
     <SummaryTile label={label}>
       <span className="flex items-center gap-2">
@@ -326,93 +339,75 @@ function ScoreTile({
   )
 }
 
-function openAlerts(client: ClientDetail) {
+/** Latest Council-verified score for one measure, with the change from baseline. */
+function MeasureTile({
+  residentId,
+  measure,
+  label,
+}: {
+  residentId: string
+  measure: "wemwbs" | "ucla"
+  label: string
+}) {
+  const { outcome } = useResidentOutcome(residentId)
+  const pair = outcome?.[measure]
+  const m = MEASURES[measure]
+  return (
+    <SummaryTile label={label}>
+      {!pair || pair.baseline === null ? (
+        <span className="text-muted-foreground">No baseline</span>
+      ) : pair.latest === null ? (
+        <span>
+          {pair.baseline}/{m.max}{" "}
+          <span className="text-xs font-normal text-muted-foreground">baseline</span>
+        </span>
+      ) : (
+        <span className="flex items-center gap-2">
+          {pair.latest}/{m.max}
+          <ChangePill measure={measure} baseline={pair.baseline} latest={pair.latest} compact />
+        </span>
+      )}
+    </SummaryTile>
+  )
+}
+
+function openAlerts(resident: ResidentDetail) {
   return [
-    client.needsProviderResponse && "A volunteer observation needs your response",
-    client.consentStatus === "PENDING" && "Consent has not been recorded yet",
-    client.consentStatus === "WITHDRAWN" && "Consent has been withdrawn",
-    client.volunteerMatchStatus === "AWAITING_MATCH" &&
-      !isLocked(client.programmeStatus) &&
+    resident.needsProviderResponse && "A volunteer observation needs your response",
+    resident.consentStatus === "PENDING" && "Consent has not been recorded yet",
+    resident.consentStatus === "WITHDRAWN" && "Consent has been withdrawn",
+    resident.volunteerMatchStatus === "AWAITING_MATCH" &&
+      !isLocked(resident.programmeStatus) &&
       "Waiting for the coordinator to match a volunteer",
   ].filter((alert): alert is string => Boolean(alert))
 }
 
-const CONSENT_SHORT: Record<ClientDetail["consentStatus"], string> = {
+const CONSENT_SHORT: Record<ResidentDetail["consentStatus"], string> = {
   GIVEN: "Given",
   PENDING: "Pending",
   WITHDRAWN: "Withdrawn",
 }
 
-const OUTCOME_DOMAINS = [
-  ["Wellbeing", "wellbeingHistory", "up"],
-  ["Loneliness", "lonelinessHistory", "down"],
-  ["Confidence", "confidenceHistory", "up"],
-] as const
-
-function OverviewTab({ client }: { client: ClientDetail }) {
-  const alerts = openAlerts(client)
+function OverviewTab({ resident }: { resident: ResidentDetail }) {
+  const alerts = openAlerts(resident)
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <div className="space-y-6 lg:col-span-2">
+    <div className="grid min-w-0 gap-6 lg:grid-cols-3">
+      <div className="min-w-0 space-y-6 lg:col-span-2">
         <Block
-          title="Outcome journey"
-          description="First volunteer-recorded score compared with the latest (1-5). Not a clinical assessment."
+          title="Outcome summary"
+          description="Baseline assessment against the latest Council-verified review"
           className="p-0"
         >
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-y bg-muted/40 text-left text-[10px] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-                <th className="py-2.5 pl-5 font-semibold">Domain</th>
-                <th className="py-2.5 font-semibold">Baseline</th>
-                <th className="py-2.5 font-semibold">Current</th>
-                <th className="py-2.5 pr-5 text-right font-semibold">Trend</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {OUTCOME_DOMAINS.map(([label, key, goodWhen]) => {
-                const series = client[key]
-                const baseline = series[0] ?? null
-                const current = latest(series)
-                const diff = baseline === null || current === null ? null : current - baseline
-                const improved = diff !== null && (goodWhen === "up" ? diff > 0 : diff < 0)
-                return (
-                  <tr key={key}>
-                    <td className="py-3 pl-5 font-medium text-heading">
-                      {label}
-                      {goodWhen === "down" && (
-                        <span className="block text-[11px] font-normal text-muted-foreground">
-                          Lower is better
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 text-muted-foreground tabular-nums">
-                      {baseline === null ? "N/A" : `${baseline}/5`}
-                    </td>
-                    <td className="py-3 font-semibold text-heading tabular-nums">
-                      {current === null ? "N/A" : `${current}/5`}
-                    </td>
-                    <td className="py-3 pr-5 text-right">
-                      {diff === null ? (
-                        <span className="text-muted-foreground">No data</span>
-                      ) : diff === 0 ? (
-                        <StatusPill tone="info">Stable</StatusPill>
-                      ) : (
-                        <StatusPill tone={improved ? "success" : "danger"}>
-                          {improved ? "Improved" : "Worse"} {diff > 0 ? "+" : ""}
-                          {diff}
-                        </StatusPill>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+          <ResidentOutcomeSummary
+            residentId={resident.id}
+            rowHref={residentHref(resident.id, "outcomes")}
+            compact
+          />
         </Block>
 
         <Block title="Recent volunteer activity" className="p-0">
-          <ActivityTab clientId={client.id} limit={3} bare />
+          <ActivityTab residentId={resident.id} limit={3} bare />
         </Block>
       </div>
 
@@ -420,14 +415,14 @@ function OverviewTab({ client }: { client: ClientDetail }) {
         <Block title="Programme">
           <dl className="divide-y text-[13px]">
             {[
-              ["Status", PROGRAMME_STATUS[client.programmeStatus].label],
-              ["Volunteer match", MATCH_STATUS[client.volunteerMatchStatus]],
-              ["Coordinator", client.coordinatorRef],
-              ["Consent", CONSENT_STATUS[client.consentStatus].label],
+              ["Status", PROGRAMME_STATUS[resident.programmeStatus].label],
+              ["Volunteer match", MATCH_STATUS[resident.volunteerMatchStatus]],
+              ["Coordinator", resident.coordinatorRef],
+              ["Consent", CONSENT_STATUS[resident.consentStatus].label],
               [
                 "Next activity",
-                client.nextActivity
-                  ? `${client.nextActivity.type}, ${formatDayMonth(client.nextActivity.date)}`
+                resident.nextActivity
+                  ? `${resident.nextActivity.type}, ${formatDayMonth(resident.nextActivity.date)}`
                   : "Nothing scheduled",
               ],
             ].map(([k, v]) => (
@@ -457,13 +452,13 @@ function OverviewTab({ client }: { client: ClientDetail }) {
   )
 }
 
-function SupportPlanTab({ client }: { client: ClientDetail }) {
-  const requests = useSupportRequests(undefined, client.id)
+function SupportPlanTab({ resident }: { resident: ResidentDetail }) {
+  const requests = useSupportRequests(undefined, resident.id)
   return (
     <div className="space-y-4">
       <Block title="Support goals" description="Agreed with the council at assignment">
         <ol className="space-y-2">
-          {client.supportGoals.map((goal, i) => (
+          {resident.supportGoals.map((goal, i) => (
             <li key={goal} className="flex items-center gap-3 text-[13px]">
               <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
                 {i + 1}
@@ -476,7 +471,7 @@ function SupportPlanTab({ client }: { client: ClientDetail }) {
 
       <Block title="Permitted volunteer activities" description="What volunteers may support with">
         <ul className="flex flex-wrap gap-2">
-          {client.permittedActivities.map((a) => (
+          {resident.permittedActivities.map((a) => (
             <li
               key={a}
               className="rounded-lg bg-success-soft px-3 py-1.5 text-[13px] font-medium text-success-foreground"
@@ -501,9 +496,17 @@ function SupportPlanTab({ client }: { client: ClientDetail }) {
             ) : (
               <ul className="divide-y">
                 {data.results.map((r) => (
-                  <li key={r.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
+                  <li
+                    key={r.id}
+                    className="relative flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-search"
+                  >
                     <div className="min-w-0">
-                      <p className="text-[13px] font-medium text-heading">{r.type}</p>
+                      <Link
+                        href={`/support-requests?id=${r.id}`}
+                        className="text-[13px] font-medium text-heading after:absolute after:inset-0 hover:underline"
+                      >
+                        {r.type}
+                      </Link>
                       <p className="truncate text-xs text-muted-foreground">
                         {r.id} · {r.goal}
                       </p>
@@ -523,13 +526,13 @@ function SupportPlanTab({ client }: { client: ClientDetail }) {
 }
 
 function ActivityTab({
-  clientId,
+  residentId,
   onRespond,
   observationsOnly,
   limit,
   bare,
 }: {
-  clientId: string
+  residentId: string
   onRespond?: (record: ActivityRecord) => void
   observationsOnly?: boolean
   /** Show only the most recent records. */
@@ -537,7 +540,7 @@ function ActivityTab({
   /** Render without its own card, inside another block. */
   bare?: boolean
 }) {
-  const query = useActivity("all", clientId)
+  const query = useActivity("all", residentId)
   const Wrapper = bare ? "div" : Block
   return (
     <Wrapper className={bare ? "border-t" : "overflow-hidden p-0"}>
@@ -571,63 +574,67 @@ function ActivityTab({
   )
 }
 
-const outcomeChart = {
-  wellbeing: { label: "Wellbeing", color: "var(--chart-1)" },
-  loneliness: { label: "Loneliness", color: "var(--chart-5)" },
-  confidence: { label: "Confidence", color: "var(--chart-3)" },
+const visitChart = {
+  visitCheck: { label: "Visit check", color: "var(--chart-1)" },
 } satisfies ChartConfig
 
-function OutcomesTab({ client }: { client: ClientDetail }) {
-  const data = client.wellbeingHistory.map((w, i) => ({
+function OutcomesTab({ resident }: { resident: ResidentDetail }) {
+  const data = resident.visitCheckHistory.map((score, i) => ({
     visit: `Visit ${i + 1}`,
-    wellbeing: w,
-    loneliness: client.lonelinessHistory[i] ?? null,
-    confidence: client.confidenceHistory[i] ?? null,
+    visitCheck: score,
   }))
   return (
-    <Block
-      title="Wellbeing, loneliness and confidence"
-      description="Recorded by volunteers on the Buddii outcome framework (1-5). Not a clinical assessment."
-    >
-      {data.length === 0 ? (
-        <EmptyState
-          icon={HeartPulse}
-          title="No outcome scores yet"
-          description="Scores appear after the first volunteer visit."
+    <div className="space-y-4">
+      <Block
+        title="Outcome summary"
+        description="Baseline assessment against the latest Council-verified review"
+        className="p-0"
+      >
+        <ResidentOutcomeSummary
+          residentId={resident.id}
+          rowHref={residentHref(resident.id, "assessments")}
         />
-      ) : (
-        <ChartContainer config={outcomeChart} className="aspect-auto h-64 w-full">
-          <LineChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-            <CartesianGrid vertical={false} />
-            <XAxis dataKey="visit" tickLine={false} axisLine={false} tickMargin={8} />
-            <YAxis
-              domain={[1, 5]}
-              ticks={[1, 2, 3, 4, 5]}
-              tickLine={false}
-              axisLine={false}
-              width={40}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
-            {(["wellbeing", "loneliness", "confidence"] as const).map((key) => (
+      </Block>
+      <Block
+        title="Visit checks"
+        description="The volunteer's 1-5 check after each visit. Not an assessment score."
+      >
+        {data.length === 0 ? (
+          <EmptyState
+            icon={HeartPulse}
+            title="No visit checks yet"
+            description="Checks appear after the first volunteer visit."
+          />
+        ) : (
+          <ChartContainer config={visitChart} className="aspect-auto h-56 w-full">
+            <LineChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="visit" tickLine={false} axisLine={false} tickMargin={8} />
+              <YAxis
+                domain={[1, 5]}
+                ticks={[1, 2, 3, 4, 5]}
+                tickLine={false}
+                axisLine={false}
+                width={40}
+              />
+              <ChartTooltip content={<ChartTooltipContent />} />
               <Line
-                key={key}
-                dataKey={key}
+                dataKey="visitCheck"
                 type="monotone"
-                stroke={`var(--color-${key})`}
+                stroke="var(--color-visitCheck)"
                 strokeWidth={2}
                 dot={{ r: 3 }}
               />
-            ))}
-          </LineChart>
-        </ChartContainer>
-      )}
-    </Block>
+            </LineChart>
+          </ChartContainer>
+        )}
+      </Block>
+    </div>
   )
 }
 
-function ConsentTab({ client }: { client: ClientDetail }) {
-  const consent = CONSENT_STATUS[client.consent.status]
+function ConsentTab({ resident }: { resident: ResidentDetail }) {
+  const consent = CONSENT_STATUS[resident.consent.status]
   return (
     <div className="space-y-4">
       <Block title="Consent and lawful basis">
@@ -639,14 +646,14 @@ function ConsentTab({ client }: { client: ClientDetail }) {
                 {consent.label}
               </StatusDot>,
             ],
-            ["Lawful basis", client.consent.lawfulBasis],
+            ["Lawful basis", resident.consent.lawfulBasis],
             [
               "Recorded",
-              client.consent.recordedAt
-                ? formatDate(client.consent.recordedAt)
+              resident.consent.recordedAt
+                ? formatDate(resident.consent.recordedAt)
                 : "Not yet recorded",
             ],
-            ["Recorded by", client.consent.recordedBy ?? "—"],
+            ["Recorded by", resident.consent.recordedBy ?? "—"],
           ].map(([k, v]) => (
             <div key={String(k)} className="rounded-card bg-muted px-4 py-3">
               <dt className="text-xs text-muted-foreground">{k}</dt>
@@ -665,15 +672,15 @@ function ConsentTab({ client }: { client: ClientDetail }) {
   )
 }
 
-function HistoryTab({ client }: { client: ClientDetail }) {
+function HistoryTab({ resident }: { resident: ResidentDetail }) {
   return (
     <Block title="Activity history" description="Programme events only, not a clinical record">
       <ol>
-        {client.history.map((h, i) => (
+        {resident.history.map((h, i) => (
           <li key={h.id} className="flex gap-4">
             <div className="flex flex-col items-center" aria-hidden>
               <span className="mt-1.5 size-2 rounded-full bg-primary" />
-              {i < client.history.length - 1 && <span className="w-px flex-1 bg-border" />}
+              {i < resident.history.length - 1 && <span className="w-px flex-1 bg-border" />}
             </div>
             <div className="pb-5">
               <p className="text-[13px] font-medium">{h.event}</p>

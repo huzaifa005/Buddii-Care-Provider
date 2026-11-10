@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest"
 
-import { clientsFixture } from "@/mocks/fixtures/clients"
+import { residentsFixture } from "@/mocks/fixtures/residents"
 
-import { clientSchema } from "./schemas"
+import { residentSchema } from "./schemas"
 
-describe("clientSchema", () => {
-  const client = clientsFixture[0]!
+describe("residentSchema", () => {
+  const resident = residentsFixture[0]!
 
-  it("accepts a valid provider-visible client", () => {
-    expect(clientSchema.parse(client)).toEqual(client)
+  it("accepts a valid provider-visible resident", () => {
+    expect(residentSchema.parse(resident)).toEqual(resident)
   })
 
   it("strips restricted data if the API ever over-shares", () => {
     const leaked = {
-      ...client,
+      ...resident,
       medication: ["Donepezil 10mg"],
       dnrStatus: "DNACPR",
       keysafeCode: "1234",
@@ -21,7 +21,7 @@ describe("clientSchema", () => {
       fullName: "Jane Doe",
     }
 
-    const parsed = clientSchema.parse(leaked)
+    const parsed = residentSchema.parse(leaked)
 
     for (const key of ["medication", "dnrStatus", "keysafeCode", "diagnosis", "fullName"]) {
       expect(parsed).not.toHaveProperty(key)
@@ -29,10 +29,10 @@ describe("clientSchema", () => {
   })
 
   it("rejects ids that are not Buddii IDs", () => {
-    expect(() => clientSchema.parse({ ...client, id: "Jane Doe" })).toThrow()
+    expect(() => residentSchema.parse({ ...resident, id: "Jane Doe" })).toThrow()
   })
 
   it("rejects outcome scores outside 1-5", () => {
-    expect(() => clientSchema.parse({ ...client, wellbeingHistory: [6] })).toThrow()
+    expect(() => residentSchema.parse({ ...resident, visitCheckHistory: [6] })).toThrow()
   })
 })

@@ -30,6 +30,12 @@ export function latest(series: number[]) {
   return series.length ? series[series.length - 1]! : null
 }
 
+/** Two-letter initials for an avatar, e.g. "Margaret Davies" -> "MD". */
+export function initials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : "")).toUpperCase()
+}
+
 /** Change between the last two observations: positive means the score went up. */
 export function lastChange(series: number[]) {
   if (series.length < 2) return 0

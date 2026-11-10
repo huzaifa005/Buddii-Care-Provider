@@ -3,7 +3,7 @@ import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query
 import { apiClient } from "@/lib/api/client"
 import { useQuery } from "@/lib/api/use-query"
 
-import { type NewReferral, referralListSchema, referralSchema } from "./schemas"
+import { referralListSchema, referralSchema, type ReferralSubmission } from "./schemas"
 
 export const referralKeys = {
   all: ["referrals"] as const,
@@ -22,7 +22,7 @@ export function useReferrals() {
 export function useSubmitReferral() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: NewReferral) =>
+    mutationFn: (input: ReferralSubmission) =>
       apiClient.post("/referrals", { schema: referralSchema, body: input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: referralKeys.all }),
   })

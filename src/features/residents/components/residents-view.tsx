@@ -43,12 +43,19 @@ import { formatDayMonth } from "@/lib/format"
 import { KpiIcons } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
-import { useClients } from "../api"
-import { isLocked, latest, PROGRAMME_STATUS } from "../presentation"
-import { type Client, type ClientListFilters } from "../schemas"
-import { ClientLink, residentHref } from "./client-link"
+import { useResidents } from "../api"
+import { initials, isLocked, latest, PROGRAMME_STATUS } from "../presentation"
+import { type Resident, type ResidentListFilters } from "../schemas"
+import { ResidentLink, residentHref } from "./resident-link"
 
-const STATUS_FILTERS = ["all", "active", "pending", "needs_response", "closed"] as const
+const STATUS_FILTERS = [
+  "all",
+  "active",
+  "pending",
+  "needs_response",
+  "awaiting_volunteer",
+  "closed",
+] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
 
 const STATUS_LABEL: Record<StatusFilter, string> = {
@@ -56,14 +63,16 @@ const STATUS_LABEL: Record<StatusFilter, string> = {
   active: "Active",
   pending: "Pending",
   needs_response: "Needs response",
+  awaiting_volunteer: "Awaiting volunteer",
   closed: "Closed",
 }
 
-const STATUS_QUERY: Record<StatusFilter, ClientListFilters> = {
+const STATUS_QUERY: Record<StatusFilter, ResidentListFilters> = {
   all: {},
   active: { status: "ACTIVE" },
   pending: { status: "PENDING" },
   needs_response: { needsResponse: true },
+  awaiting_volunteer: { awaitingMatch: true },
   closed: { closed: true },
 }
 
@@ -81,14 +90,14 @@ export function ResidentsView() {
   const deferredSearch = useDeferredValue(search)
   const canRefer = useCan("referrals.create")
 
-  const query = useClients({
+  const query = useResidents({
     ...STATUS_QUERY[status],
     area: area === ALL_AREAS ? undefined : area,
     search: deferredSearch || undefined,
     page: page > 1 ? page : undefined,
   })
-  const all = useClients()
-  const areas = [...new Set(all.data?.results.map((c) => c.postcodeDistrict))].sort()
+  const all = useResidents()
+  const areas = [...new Set(all.data?.results.map((c) => c.area))].sort()
 
   // Any filter change starts again from the first page.
   const resetPage = () => void setPage(null)
@@ -108,7 +117,7 @@ export function ResidentsView() {
             </Button>
             {canRefer && (
               <Button asChild className="h-10 px-4">
-                <Link href="/assignments?refer=true">
+                <Link href="/residents/refer">
                   <Send aria-hidden />
                   Refer a resident
                 </Link>
@@ -179,7 +188,7 @@ export function ResidentsView() {
                 void setSearch(e.target.value || null)
                 resetPage()
               }}
-              placeholder="Search by Buddii ID, area or goal"
+              placeholder="Search by name, Buddii ID, area or goal"
               aria-label="Search residents"
             />
           </InputGroup>
@@ -216,7 +225,7 @@ export function ResidentsView() {
   )
 }
 
-function ResidentStats({ residents, total }: { residents?: Client[]; total?: number }) {
+function ResidentStats({ residents, total }: { residents?: Resident[]; total?: number }) {
   if (!residents) {
     return (
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -244,6 +253,7 @@ function ResidentStats({ residents, total }: { residents?: Client[]; total?: num
         value={active}
         icon={KpiIcons.wellbeing}
         caption="in the programme"
+        href="/residents?view=active"
       />
       <StatCard
         label="Needs response"
@@ -258,12 +268,13 @@ function ResidentStats({ residents, total }: { residents?: Client[]; total?: num
         value={awaiting}
         icon={KpiIcons.awaiting}
         caption="with the coordinator"
+        href="/residents?view=awaiting_volunteer"
       />
     </div>
   )
 }
 
-function ResidentsTable({ residents }: { residents: Client[] }) {
+function ResidentsTable({ residents }: { residents: Resident[] }) {
   const router = useRouter()
 
   return (
@@ -275,20 +286,20 @@ function ResidentsTable({ residents }: { residents: Client[] }) {
           <TableHead className={tableHead}>Volunteer</TableHead>
           <TableHead className={tableHead}>Last visit</TableHead>
           <TableHead className={tableHead}>Next visit</TableHead>
-          <TableHead className={tableHead}>Wellbeing</TableHead>
+          <TableHead className={tableHead}>Visit check</TableHead>
           <TableHead className={tableHead}>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {residents.map((r) => {
           const status = PROGRAMME_STATUS[r.programmeStatus]
-          const wellbeing = latest(r.wellbeingHistory)
+          const wellbeing = latest(r.visitCheckHistory)
           const volunteer = r.nextActivity?.volunteerRef ?? r.lastActivity?.volunteerRef
           const locked = isLocked(r.programmeStatus)
           return (
             <TableRow
               key={r.id}
-              // The Buddii ID link is the keyboard target; the row is a larger mouse target.
+              // The name link is the keyboard target; the row is a larger mouse target.
               onClick={(e) => {
                 if ((e.target as HTMLElement).closest("a")) return
                 router.push(residentHref(r.id))
@@ -302,15 +313,17 @@ function ResidentsTable({ residents }: { residents: Client[] }) {
               <TableCell className={tableCell}>
                 <div className="flex items-center gap-3">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground tabular-nums">
-                    {r.id.slice(-2)}
+                    {initials(r.name)}
                   </span>
                   <div className="min-w-0">
-                    <ClientLink
-                      clientId={r.id}
-                      className="block font-semibold text-heading tabular-nums hover:underline"
-                    />
-                    <span className="block text-xs text-muted-foreground">
-                      {r.ageBand} · {r.postcodeDistrict}
+                    <ResidentLink
+                      residentId={r.id}
+                      className="block truncate font-semibold text-heading hover:underline"
+                    >
+                      {r.name}
+                    </ResidentLink>
+                    <span className="block text-xs text-muted-foreground tabular-nums">
+                      {r.id} · {r.ageBand} · {r.area}
                     </span>
                   </div>
                 </div>

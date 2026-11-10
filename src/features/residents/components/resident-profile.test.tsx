@@ -17,22 +17,25 @@ vi.mock("next/navigation", () => ({
 }))
 
 describe("ResidentProfile", () => {
-  it("shows the resident with a breadcrumb and seven numbered tabs", async () => {
+  it("shows the resident with a breadcrumb, seven numbered tabs and a More menu", async () => {
     params.residentId = "BUD-0009"
     renderWithProviders(<ResidentProfile />)
 
-    expect(await screen.findByRole("heading", { level: 1, name: "BUD-0009" })).toBeInTheDocument()
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Margaret Davies" }),
+    ).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Residents" })).toHaveAttribute("href", "/residents")
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
       "1. Overview",
       "2. Support plan",
       "3. Volunteer activity",
       "4. Outcomes",
-      "5. Observations",
-      "6. Consent & access",
-      "7. Activity history",
+      "5. Assessments",
+      "6. Documents",
+      "7. Observations",
     ])
-    expect(screen.getByRole("heading", { name: "Outcome journey" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "More" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Outcome summary" })).toBeInTheDocument()
     expect(await screen.findByRole("link", { name: /support request/i })).toHaveAttribute(
       "href",
       "/support-requests?new=true&for=BUD-0009",

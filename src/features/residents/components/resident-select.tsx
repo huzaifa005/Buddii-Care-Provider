@@ -8,18 +8,18 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { useClients } from "../api"
+import { useResidents } from "../api"
 
-interface ClientSelectProps {
+interface ResidentSelectProps {
   value: string
   onChange: (value: string) => void
   id?: string
   invalid?: boolean
 }
 
-/** Buddii client picker for forms. Shows IDs and non-identifying context only. */
-export function ClientSelect({ value, onChange, id, invalid }: ClientSelectProps) {
-  const { data, isPending } = useClients()
+/** Resident picker for forms: name first, Buddii ID and area as context. */
+export function ResidentSelect({ value, onChange, id, invalid }: ResidentSelectProps) {
+  const { data, isPending } = useResidents()
 
   return (
     <Select value={value} onValueChange={onChange} disabled={isPending}>
@@ -27,11 +27,11 @@ export function ClientSelect({ value, onChange, id, invalid }: ClientSelectProps
         <SelectValue placeholder={isPending ? "Loading residents…" : "Select a resident"} />
       </SelectTrigger>
       <SelectContent>
-        {data?.results.map((client) => (
-          <SelectItem key={client.id} value={client.id}>
-            <span className="font-medium tabular-nums">{client.id}</span>
-            <span className="text-muted-foreground">
-              · {client.ageBand} · {client.postcodeDistrict}
+        {data?.results.map((resident) => (
+          <SelectItem key={resident.id} value={resident.id}>
+            <span className="font-medium">{resident.name}</span>
+            <span className="text-muted-foreground tabular-nums">
+              · {resident.id} · {resident.area}
             </span>
           </SelectItem>
         ))}

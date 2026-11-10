@@ -1,70 +1,46 @@
 import { z } from "zod"
 
-import { buddiiIdSchema } from "@/features/clients/schemas"
-import { SUPPORT_TYPES } from "@/features/support-requests/schemas"
+import { documentSchema, personSchema } from "./assessment"
 
 /**
- * Provider referrals (v10 section 6.1): the provider refers a resident, the council reviews it
- * and creates the Buddii client account. Providers never create client accounts themselves.
- *
- * A referral carries no name, address or clinical detail. The provider's own reference lets the
- * council match it to the provider's records outside Buddii.
+ * A resident the provider sends to the Council: identity (Section B), the Buddii Wellbeing
+ * Assessment answers and supporting documents. The Council checks the information, recommends
+ * and approves, then creates the resident record. Providers never create residents themselves.
  */
 
-export const AGE_BANDS = [
-  "60-64",
-  "65-69",
-  "70-74",
-  "75-79",
-  "80-84",
-  "85-89",
-  "90-94",
-  "95+",
+/** Council journey stages a referral passes through before it becomes a resident. */
+export const REFERRAL_STAGES = [
+  "SENT",
+  "INFO_REQUESTED",
+  "INFO_CHECKED",
+  "RECOMMENDED",
+  "APPROVED",
+  "NOT_ACCEPTED",
 ] as const
-
-export const REFERRAL_STATUSES = ["SUBMITTED", "UNDER_REVIEW", "APPROVED", "DECLINED"] as const
-export type ReferralStatus = (typeof REFERRAL_STATUSES)[number]
+export type ReferralStage = (typeof REFERRAL_STAGES)[number]
 
 export const referralSchema = z.object({
   id: z.string(),
-  providerRef: z.string(),
-  ageBand: z.enum(AGE_BANDS),
-  postcodeDistrict: z.string(),
-  supportTypes: z.array(z.enum(SUPPORT_TYPES)).min(1),
-  status: z.enum(REFERRAL_STATUSES),
+  residentName: z.string(),
+  postcode: z.string(),
+  stage: z.enum(REFERRAL_STAGES),
   submittedAt: z.iso.date(),
-  /** Set by the council when it approves the referral and creates the client account. */
-  clientId: buddiiIdSchema.nullable(),
+  documents: z.array(documentSchema),
+  /** Answers the Council reviewer must look at (the form's review and flag rules). */
+  reviewFlags: z.number().int().nonnegative(),
+  /** Set when the Council approves the referral and creates the resident record. */
+  residentId: z.string().nullable(),
   councilNote: z.string().nullable(),
 })
 export type Referral = z.infer<typeof referralSchema>
 
 export const referralListSchema = z.array(referralSchema)
 
-/** UK outward code, e.g. E6, E12, EC1A. Full postcodes are not collected. */
-const postcodeDistrictSchema = z
-  .string()
-  .trim()
-  .toUpperCase()
-  .regex(/^[A-Z]{1,2}\d[A-Z\d]?$/, "Enter the first part of the postcode only, e.g. E6")
-
-export const newReferralSchema = z.object({
-  providerRef: z
-    .string()
-    .trim()
-    .min(2, "Enter your internal reference")
-    .max(40, "Keep the reference under 40 characters"),
-  ageBand: z.enum(AGE_BANDS, "Choose an age band"),
-  postcodeDistrict: postcodeDistrictSchema,
-  supportTypes: z.array(z.enum(SUPPORT_TYPES)).min(1, "Choose at least one type of support"),
-  reason: z
-    .string()
-    .trim()
-    .min(10, "Say briefly why volunteer support would help")
-    .max(600, "Keep this under 600 characters"),
-  consentConfirmed: z
-    .boolean()
-    .refine((confirmed) => confirmed, "The resident must agree before you refer them"),
+export const referralSubmissionSchema = z.object({
+  person: personSchema,
+  answers: z.record(z.string(), z.union([z.string(), z.array(z.string())])),
+  documents: z.array(documentSchema),
+  /** Who completed the form on the provider side (Section B2 and M). */
+  completedBy: z.string().trim().min(2, "Enter your name"),
 })
-export type NewReferralInput = z.input<typeof newReferralSchema>
-export type NewReferral = z.output<typeof newReferralSchema>
+export type ReferralSubmission = z.infer<typeof referralSubmissionSchema>

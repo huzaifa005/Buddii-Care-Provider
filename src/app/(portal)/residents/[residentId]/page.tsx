@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 
 import { PageSkeleton } from "@/components/shared/page-skeleton"
-import { ResidentProfile } from "@/features/clients/components/resident-profile"
+import { ResidentProfile } from "@/features/residents/components/resident-profile"
 
 export const metadata: Metadata = { title: "Resident" }
 
